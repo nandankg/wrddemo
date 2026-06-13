@@ -1,0 +1,85 @@
+/* ============================================================
+   WRD Jharkhand — Institutional Water Authority design system
+   ============================================================ */
+:root{
+  --ink:#06314a;          /* deep navy water */
+  --ink-2:#0a4763;
+  --brand:#0E7C86;        /* teal */
+  --brand-deep:#0a5d65;
+  --brand-soft:#e6f4f4;
+  --gold:#B45309;         /* restrained amber accent */
+  --gold-soft:#fdf3e7;
+  --paper:#f6f8f9;
+  --line:#e2e8f0;
+}
+
+html{ font-size:16px; scroll-behavior:smooth; }
+html.fs-2{ font-size:17.5px; } html.fs-3{ font-size:19px; } html.fs-0{ font-size:14.5px; }
+body{ font-family:'Mukta',system-ui,sans-serif; color:#1e293b; background:var(--paper); }
+h1,h2,h3,.display{ font-family:'Fraunces',Georgia,serif; letter-spacing:-0.01em; }
+
+/* ---- water atmosphere ---- */
+.bg-ink{ background:var(--ink); }
+.water-hero{
+  background:
+    radial-gradient(1200px 500px at 85% -10%, rgba(14,124,134,.55), transparent 60%),
+    radial-gradient(900px 600px at 10% 110%, rgba(10,71,99,.65), transparent 55%),
+    linear-gradient(160deg,#06314a 0%,#0a4763 55%,#0E7C86 130%);
+  position:relative; overflow:hidden;
+}
+.water-hero::after{   /* subtle contour/wave lines */
+  content:""; position:absolute; inset:0; opacity:.14; pointer-events:none;
+  background-image:
+    repeating-linear-gradient(115deg, transparent 0 38px, rgba(255,255,255,.6) 38px 39px);
+  mask-image:radial-gradient(120% 120% at 50% 0%, #000 30%, transparent 75%);
+}
+.grain::before{
+  content:""; position:absolute; inset:0; pointer-events:none; opacity:.05; z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---- cards & motion ---- */
+.card{ background:#fff; border:1px solid var(--line); border-radius:18px; }
+.lift{ transition:transform .25s cubic-bezier(.2,.7,.2,1), box-shadow .25s; }
+.lift:hover{ transform:translateY(-4px); box-shadow:0 18px 40px -22px rgba(6,49,74,.45); }
+.kpi-accent{ background:linear-gradient(135deg,#fff, #f0f7f7); }
+
+@keyframes rise{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;} }
+.rise{ animation:rise .6s both; }
+.d1{animation-delay:.05s}.d2{animation-delay:.12s}.d3{animation-delay:.19s}
+.d4{animation-delay:.26s}.d5{animation-delay:.33s}.d6{animation-delay:.40s}
+
+/* flowing dot for the live revenue routing demo */
+@keyframes flow{ 0%{left:0; opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{left:100%; opacity:0} }
+.flow-dot{ position:absolute; top:50%; width:14px; height:14px; margin-top:-7px; border-radius:50%;
+  background:#34d399; box-shadow:0 0 0 4px rgba(52,211,153,.25); animation:flow 1.8s ease-in-out forwards; }
+
+/* sidebar link */
+.nav-link{ display:flex; align-items:center; gap:.7rem; padding:.6rem .85rem; border-radius:11px;
+  color:#cbd5e1; font-weight:500; font-size:.93rem; transition:.15s; }
+.nav-link:hover{ background:rgba(255,255,255,.08); color:#fff; }
+.nav-link.active{ background:var(--brand); color:#fff; box-shadow:0 8px 20px -10px rgba(14,124,134,.8); }
+
+/* skip link */
+.skip{ position:absolute; left:-999px; top:0; z-index:100; background:var(--gold); color:#fff; padding:.6rem 1rem; border-radius:0 0 10px 0; }
+.skip:focus{ left:0; }
+
+/* focus visibility (accessibility) */
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:3px solid #f59e0b; outline-offset:2px; border-radius:6px;
+}
+
+/* ---- high contrast mode ---- */
+body.hc{ background:#000 !important; color:#fff !important; }
+body.hc .card,body.hc .bg-white{ background:#000 !important; border-color:#fff !important; color:#fff !important; }
+body.hc .text-slate-500,body.hc .text-slate-600,body.hc .text-slate-700{ color:#fff !important; }
+body.hc a{ color:#ffd400 !important; }
+body.hc .water-hero{ background:#000 !important; }
+
+/* marquee ticker */
+@keyframes ticker{ from{transform:translateX(0)} to{transform:translateX(-50%)} }
+.ticker{ display:inline-flex; gap:3rem; white-space:nowrap; animation:ticker 32s linear infinite; }
+.ticker-wrap:hover .ticker{ animation-play-state:paused; }
+
+/* devanagari slightly larger for legibility */
+html[lang="hi"] body{ font-weight:400; }

@@ -1,0 +1,10 @@
+# Brainstorm / visual-companion artifacts
+.superpowers/
+
+# OS / editor
+Thumbs.db
+.DS_Store
+*.log
+
+# Local overrides
+config/config.local.php
