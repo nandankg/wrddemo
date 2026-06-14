@@ -51,6 +51,11 @@ $STRINGS = [
     'search'        => ['en'=>'Search', 'hi'=>'खोजें'],
     'accessibility' => ['en'=>'Accessibility', 'hi'=>'सुगम्यता'],
     'skip_content'  => ['en'=>'Skip to main content', 'hi'=>'मुख्य सामग्री पर जाएँ'],
+    'suite_name'    => ['en'=>'WRD Project Suite', 'hi'=>'जल संसाधन विभाग परियोजना सूट'],
+    'suite_hero'    => ['en'=>'Transparent, secure, accountable water governance for Jharkhand', 'hi'=>'झारखंड हेतु पारदर्शी, सुरक्षित एवं उत्तरदायी जल शासन'],
+    'suite_sub'     => ['en'=>'Select a product to explore its live demonstration. Each runs as an independent system with its own users, dashboards and workflows.', 'hi'=>'किसी उत्पाद का लाइव डेमो देखने हेतु चयन करें। प्रत्येक स्वतंत्र प्रणाली है — अपने उपयोगकर्ता, डैशबोर्ड एवं कार्यप्रवाह सहित।'],
+    'open_demo'     => ['en'=>'Open demo', 'hi'=>'डेमो खोलें'],
+    'five_products' => ['en'=>'Five digital products · one department', 'hi'=>'पाँच डिजिटल उत्पाद · एक विभाग'],
 ];
 function t(string $key): string {
     global $STRINGS;
