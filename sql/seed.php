@@ -29,6 +29,7 @@ function seed_demo(PDO $pdo): void {
         ['ae','Sunita Oraon','सुनीता उरांव','AE','Assistant Engineer',1],
         ['je','Amit Mahato','अमित महतो','JE','Junior Engineer',1],
         ['finance','D. N. Prasad','डी. एन. प्रसाद','FINANCE','Finance Officer',null],
+        ['accounts','M. Ekka','एम. एक्का','ACCOUNTS','Divisional Accounts Officer',1],
         ['aso','Rekha Devi','रेखा देवी','ASO','Assistant Section Officer',null],
         ['admin','System Administrator','सिस्टम एडमिन','ADMIN','Portal Administrator',null],
         ['contractor','Narayan Constructions Pvt Ltd','नारायण कंस्ट्रक्शन्स','CONTRACTOR','Registered Contractor',null],
