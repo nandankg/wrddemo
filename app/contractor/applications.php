@@ -38,6 +38,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
 }
 
 set_app_context('contractor');
+app_require_access('applications');
 $LAYOUT='app'; $ACTIVE='applications'; $PAGE_TITLE='Applications';
 require __DIR__ . '/../../includes/header.php';
 

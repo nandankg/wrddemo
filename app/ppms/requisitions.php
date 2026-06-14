@@ -72,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
 }
 
 set_app_context('ppms');
+app_require_access('requisitions');
 $LAYOUT='app'; $ACTIVE='requisitions'; $PAGE_TITLE='Fund Requisition';
 require __DIR__ . '/../../includes/header.php';
 
