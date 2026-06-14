@@ -25,3 +25,7 @@ it('wrd_app returns one product or null', function () {
 it('ppms roles match the spec', function () {
     assert_eq(['JE','AE','EE','SE','EIC','FINANCE','SECRETARY'], wrd_app('ppms')['roles']);
 });
+
+it('ppms nav exposes dashboard, projects, requisitions, reports in order', function () {
+    assert_eq(['dashboard','projects','requisitions','reports'], array_column(wrd_app('ppms')['nav'], 'key'));
+});

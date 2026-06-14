@@ -18,6 +18,7 @@ function wrd_apps(): array {
             'roles' => ['JE','AE','EE','SE','EIC','FINANCE','SECRETARY'],
             'nav' => [
                 ['key'=>'dashboard','label'=>'Command Centre','url'=>'app/ppms/index.php','icon'=>'▤'],
+                ['key'=>'projects','label'=>'Projects & Progress','url'=>'app/ppms/projects.php','icon'=>'📍'],
                 ['key'=>'requisitions','label'=>'Fund Requisition','url'=>'app/ppms/requisitions.php','icon'=>'₹'],
                 ['key'=>'reports','label'=>'Reports / MIS','url'=>'app/ppms/reports.php','icon'=>'▦'],
             ],
