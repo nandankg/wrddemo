@@ -57,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
         $ref='FRC/2025/'.str_pad((string)$id,4,'0',STR_PAD_LEFT);
         $pdo->prepare("UPDATE fund_requisitions SET status='Released',release_ref=?,release_date=CURDATE(),current_owner_role='ADMIN' WHERE id=?")->execute([$ref,$id]);
         add_audit($pdo,'fund_requisition',$id,'Fund Released','ADMIN','ADMIN',$actor,'Released vide '.$ref);
+        ppms_notify($pdo,'SMS','EE · +91-9430xx521','Fund requisition '.$fr['req_no'].' released: '.inr((float)$fr['allocated_amount']).'.','fund_requisition #'.$id);
         flash('Fund released. Certificate available.'); break;
       case 'reject':
         $pdo->prepare("UPDATE fund_requisitions SET status='Rejected' WHERE id=?")->execute([$id]);

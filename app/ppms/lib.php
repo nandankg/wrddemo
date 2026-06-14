@@ -89,6 +89,117 @@ function ppms_pending_actions(string $role, array $reqs, array $progress): array
     return $out;
 }
 
+/**
+ * Effective milestone status: an unfinished item past its planned date is Delayed.
+ * $actual is accepted for call-site consistency (pages pass the row's actual_date)
+ * and is reserved for future planned-vs-actual variance display; not needed here.
+ */
+function ppms_milestone_status(string $status, ?string $actual, string $planned, string $today): string {
+    if ($status === 'Done') return 'Done';
+    if ($planned < $today)  return 'Delayed';
+    return $status;
+}
+
+/** Weighted completion % from a project's milestones (only Done counts). */
+function ppms_milestone_progress(array $milestones): int {
+    $total = 0; $done = 0;
+    foreach ($milestones as $m) {
+        $w = (int)$m['weight'];
+        $total += $w;
+        if ($m['status'] === 'Done') $done += $w;
+    }
+    return $total > 0 ? (int)round($done / $total * 100) : 0;
+}
+
+/** Per-division BI aggregates as an indexed list sorted by division name. */
+function ppms_bi_by_division(array $projects): array {
+    $acc = [];
+    foreach ($projects as $p) {
+        $d = $p['divn'];
+        if (!isset($acc[$d])) $acc[$d] = ['divn'=>$d,'count'=>0,'physSum'=>0,'finSum'=>0,'sanctioned'=>0.0,'spent'=>0.0];
+        $acc[$d]['count']++;
+        $acc[$d]['physSum']    += (int)$p['physical_pct'];
+        $acc[$d]['finSum']     += (int)$p['financial_pct'];
+        $acc[$d]['sanctioned'] += (float)$p['sanctioned_amount'];
+        $acc[$d]['spent']      += (float)$p['spent_amount'];
+    }
+    ksort($acc);
+    $out = [];
+    foreach ($acc as $a) {
+        $out[] = [
+            'divn'        => $a['divn'],
+            'count'       => $a['count'],
+            'phys'        => $a['count'] ? (int)round($a['physSum']/$a['count']) : 0,
+            'fin'         => $a['count'] ? (int)round($a['finSum']/$a['count']) : 0,
+            'sanctioned'  => $a['sanctioned'],
+            'spent'       => $a['spent'],
+            'utilisation' => $a['sanctioned'] > 0 ? (int)round($a['spent']/$a['sanctioned']*100) : 0,
+        ];
+    }
+    return $out;
+}
+
+/** Shape already-fetched rows into {columns, rows} for a report type (drives preview + every export). */
+function ppms_report_dataset(string $type, array $rows): array {
+    $maps = [
+        'project' => [
+            'columns' => ['Project','Scheme','Division','Status','Physical %','Financial %','Sanctioned (₹)','Spent (₹)'],
+            'keys'    => ['name','scheme','divn','status','physical_pct','financial_pct','sanctioned_amount','spent_amount'],
+        ],
+        'division' => [
+            'columns' => ['Division','Projects','Avg Physical %','Avg Financial %','Sanctioned (₹)','Spent (₹)','Utilisation %'],
+            'keys'    => ['divn','count','phys','fin','sanctioned','spent','utilisation'],
+        ],
+        'scheme' => [
+            'columns' => ['Scheme','Projects','Avg Physical %','Sanctioned (₹)','Spent (₹)'],
+            'keys'    => ['scheme','count','phys','sanctioned','spent'],
+        ],
+        'requisition' => [
+            'columns' => ['Req No','Project','Division','Amount (₹)','Status','Allocated (₹)'],
+            'keys'    => ['req_no','proj','divn','amount_requested','status','allocated_amount'],
+        ],
+    ];
+    $m = $maps[$type] ?? $maps['project'];
+    $out = [];
+    foreach ($rows as $r) {
+        $line = [];
+        foreach ($m['keys'] as $k) $line[] = $r[$k] ?? '';
+        $out[] = $line;
+    }
+    return ['columns' => $m['columns'], 'rows' => $out];
+}
+
+/** Next scheduled-report run date from a base date; unknown frequency defaults to monthly. */
+function ppms_next_run(string $frequency, string $from): string {
+    $map = ['Daily'=>'+1 day','Weekly'=>'+1 week','Monthly'=>'+1 month','Quarterly'=>'+3 months'];
+    $add = $map[$frequency] ?? '+1 month';
+    return date('Y-m-d', strtotime($add, strtotime($from)));
+}
+
+/** Simulated 6-digit OTP (demo only; shown on-screen, never sent over a real channel). */
+function ppms_otp_generate(): string {
+    return str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+}
+
+/** Write a simulated notification (SMS / OTP / EMAIL). DB side-effect; not unit-tested. */
+function ppms_notify(PDO $pdo, string $channel, string $to, string $message, ?string $entity = null): void {
+    try {
+        $pdo->prepare('INSERT INTO notifications (channel,to_label,message,entity,status) VALUES (?,?,?,?,?)')
+            ->execute([$channel, $to, $message, $entity, 'Sent']);
+    } catch (Throwable $e) {
+        // notifications table may not exist yet on a fresh checkout — never block the page
+    }
+}
+
+/** Unread notification count (for the header bell). DB read; not unit-tested. */
+function ppms_unread_count(PDO $pdo): int {
+    try {
+        return (int)$pdo->query('SELECT COUNT(*) FROM notifications WHERE is_read=0')->fetchColumn();
+    } catch (Throwable $e) {
+        return 0;   // table may not exist yet on a fresh checkout
+    }
+}
+
 /** Require a logged-in user; bounce to the PPMS login (not the generic one) if not. */
 function ppms_require_login(): void {
     if (!function_exists('is_logged_in') || !is_logged_in()) {

@@ -26,8 +26,11 @@ it('ppms roles match the spec', function () {
     assert_eq(['JE','AE','EE','SE','EIC','FINANCE','SECRETARY'], wrd_app('ppms')['roles']);
 });
 
-it('ppms nav exposes dashboard, projects, requisitions, reports in order', function () {
-    assert_eq(['dashboard','projects','requisitions','reports'], array_column(wrd_app('ppms')['nav'], 'key'));
+it('ppms nav exposes all eight module items in order', function () {
+    assert_eq(
+      ['dashboard','projects','milestones','requisitions','bi','reports','scheduled','notifications'],
+      array_column(wrd_app('ppms')['nav'], 'key')
+    );
 });
 
 it('etariff nav exposes dashboard and bills in order', function () {

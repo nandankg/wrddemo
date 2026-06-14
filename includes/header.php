@@ -101,6 +101,14 @@ tailwind.config = {
 
     <div class="flex items-center gap-2">
       <?php if ($u): ?>
+        <?php if (($APP['key'] ?? '') === 'ppms'):
+            require_once __DIR__ . '/../app/ppms/lib.php';
+            $unread = ppms_unread_count(db()); ?>
+          <a href="<?= base_url('app/ppms/notifications.php') ?>" class="relative inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-slate-100" title="Notifications">
+            <span class="text-lg">🔔</span>
+            <?php if ($unread > 0): ?><span class="absolute -top-0.5 -right-0.5 bg-rose-600 text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 px-1 grid place-items-center"><?= $unread ?></span><?php endif; ?>
+          </a>
+        <?php endif; ?>
         <a href="<?= base_url($APP['home'] ?? 'index.php') ?>" class="hidden sm:inline-flex items-center gap-1.5 text-white text-sm font-semibold px-3.5 py-2 rounded-lg" style="background:<?= e($ACCENT) ?>"><?= t('dashboard') ?></a>
         <div class="hidden md:flex flex-col items-end leading-tight">
           <span class="text-[13px] font-semibold text-ink"><?= e($u['name']) ?></span>
