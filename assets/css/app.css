@@ -83,3 +83,26 @@ body.hc .water-hero{ background:#000 !important; }
 
 /* devanagari slightly larger for legibility */
 html[lang="hi"] body{ font-weight:400; }
+
+/* ===== Per-product accent design-system tokens ===== */
+:root { --acc: #0E7C86; }
+
+/* Sidebar active item uses the product accent */
+.nav-link.active {
+  background: color-mix(in srgb, var(--acc) 18%, transparent);
+  color: #fff;
+  box-shadow: inset 3px 0 0 var(--acc);
+}
+
+/* Card with an accent top-border (launcher + dashboards) */
+.acc-card { border-top: 4px solid var(--acc); }
+
+/* KPI tile with an accent left-border */
+.acc-kpi { border-left: 3px solid var(--acc); }
+
+/* Accent-filled button */
+.btn-acc { background: var(--acc); color: #fff; }
+.btn-acc:hover { filter: brightness(.94); }
+
+/* Soft accent chip */
+.chip-acc { background: color-mix(in srgb, var(--acc) 14%, #fff); color: var(--acc); }
