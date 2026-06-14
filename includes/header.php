@@ -3,6 +3,9 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/i18n.php';
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/app_context.php';
+$APP = app_ctx();
+$ACCENT = app_accent();
 
 $LAYOUT      = $LAYOUT      ?? 'public';
 $PAGE_TITLE  = $PAGE_TITLE  ?? '';
@@ -23,7 +26,7 @@ $nav = [
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= $PAGE_TITLE ? e($PAGE_TITLE).' · ' : '' ?>WRD Jharkhand</title>
+<title><?= $PAGE_TITLE ? e($PAGE_TITLE).' · ' : '' ?><?= $APP ? e($APP['short']).' · ' : '' ?>WRD Jharkhand</title>
 <meta name="description" content="Water Resources Department, Government of Jharkhand — Integrated Digital Backbone.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -44,7 +47,7 @@ tailwind.config = {
 <script defer src="<?= base_url('assets/js/app.js') ?>"></script>
 <?php if (!empty($EXTRA_HEAD)) echo $EXTRA_HEAD; ?>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col" style="--acc: <?= e($ACCENT) ?>">
 <a href="#main" class="skip"><?= t('skip_content') ?></a>
 
 <!-- ===== Government utility strip ===== -->
@@ -84,7 +87,7 @@ tailwind.config = {
       </span>
       <div class="leading-tight">
         <div class="font-display font-semibold text-ink text-[15px] sm:text-[17px]"><?= t('portal_name') ?></div>
-        <div class="text-[11px] sm:text-xs text-slate-500"><?= t('govt') ?> · <?= t('tagline') ?></div>
+        <div class="text-[11px] sm:text-xs text-slate-500"><?= t('govt') ?> · <?= $APP ? (is_hi()?e($APP['name_hi']):e($APP['name'])) : t('tagline') ?></div>
       </div>
     </a>
 
@@ -98,7 +101,7 @@ tailwind.config = {
 
     <div class="flex items-center gap-2">
       <?php if ($u): ?>
-        <a href="<?= base_url('app/dashboard.php') ?>" class="hidden sm:inline-flex items-center gap-1.5 bg-brand hover:bg-branddeep text-white text-sm font-semibold px-3.5 py-2 rounded-lg"><?= t('dashboard') ?></a>
+        <a href="<?= base_url($APP['home'] ?? 'index.php') ?>" class="hidden sm:inline-flex items-center gap-1.5 text-white text-sm font-semibold px-3.5 py-2 rounded-lg" style="background:<?= e($ACCENT) ?>"><?= t('dashboard') ?></a>
         <div class="hidden md:flex flex-col items-end leading-tight">
           <span class="text-[13px] font-semibold text-ink"><?= e($u['name']) ?></span>
           <span class="text-[11px] text-slate-500"><?= e(role_label()) ?></span>
