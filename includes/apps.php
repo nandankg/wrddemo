@@ -19,8 +19,12 @@ function wrd_apps(): array {
             'nav' => [
                 ['key'=>'dashboard','label'=>'Command Centre','url'=>'app/ppms/index.php','icon'=>'▤'],
                 ['key'=>'projects','label'=>'Projects & Progress','url'=>'app/ppms/projects.php','icon'=>'📍'],
+                ['key'=>'milestones','label'=>'Milestones','url'=>'app/ppms/milestones.php','icon'=>'🏁'],
                 ['key'=>'requisitions','label'=>'Fund Requisition','url'=>'app/ppms/requisitions.php','icon'=>'₹','roles'=>['EE','SE','EIC','FINANCE','SECRETARY']],
-                ['key'=>'reports','label'=>'Reports / MIS','url'=>'app/ppms/reports.php','icon'=>'▦'],
+                ['key'=>'bi','label'=>'BI Dashboard','url'=>'app/ppms/bi.php','icon'=>'📈'],
+                ['key'=>'reports','label'=>'Report Builder','url'=>'app/ppms/reports.php','icon'=>'▦'],
+                ['key'=>'scheduled','label'=>'Scheduled Reports','url'=>'app/ppms/scheduled.php','icon'=>'🗓'],
+                ['key'=>'notifications','label'=>'Notifications','url'=>'app/ppms/notifications.php','icon'=>'🔔'],
             ],
         ],
         'contractor' => [
