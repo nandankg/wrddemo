@@ -3,19 +3,47 @@ require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../includes/i18n.php';
 require_once __DIR__ . '/../../includes/functions.php';
 require_once __DIR__ . '/../../includes/app_context.php';
+require_once __DIR__ . '/lib.php';
 set_app_context('ppms');
 $APP = app_ctx();
 
-$error = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (login_user(trim($_POST['username'] ?? ''), $_POST['password'] ?? '')) {
-        header('Location: ' . base_url('app/ppms/index.php')); exit;
-    }
-    $error = is_hi() ? 'अमान्य उपयोगकर्ता नाम या पासवर्ड।' : 'Invalid username or password.';
-}
+$error = ''; $stage = 'login';
 if (is_logged_in()) { header('Location: ' . base_url('app/ppms/index.php')); exit; }
 
-// PPMS role quick-pick (only this product's roles)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $step = $_POST['step'] ?? 'credentials';
+    if ($step === 'credentials') {
+        $st = db()->prepare('SELECT id,username,name,role,phone FROM users WHERE username=?');
+        $st->execute([trim($_POST['username'] ?? '')]);
+        $cand = $st->fetch();
+        // Verify password without logging in yet (OTP gate first).
+        $ok = false;
+        if ($cand) {
+            $h = db()->prepare('SELECT password_hash FROM users WHERE id=?'); $h->execute([$cand['id']]);
+            $ok = password_verify($_POST['password'] ?? '', (string)$h->fetchColumn());
+        }
+        if ($ok) {
+            $_SESSION['ppms_otp'] = ppms_otp_generate();
+            $_SESSION['ppms_otp_user'] = trim($_POST['username']);
+            $phone = $cand['phone'] ?: '+91-9430xxxxxx';
+            ppms_notify(db(),'OTP',$cand['name'].' · '.$phone,'Your PPMS login OTP is '.$_SESSION['ppms_otp'].' (demo).','login');
+            $stage = 'otp';
+        } else {
+            $error = is_hi() ? 'अमान्य उपयोगकर्ता नाम या पासवर्ड।' : 'Invalid username or password.';
+        }
+    } elseif ($step === 'otp') {
+        if (($_POST['otp'] ?? '') === ($_SESSION['ppms_otp'] ?? '_') && !empty($_SESSION['ppms_otp_user'])) {
+            // OTP verified — establish the real session via the demo password.
+            login_user($_SESSION['ppms_otp_user'], DEMO_PASSWORD);
+            unset($_SESSION['ppms_otp'], $_SESSION['ppms_otp_user']);
+            header('Location: ' . base_url('app/ppms/index.php')); exit;
+        }
+        $error = is_hi() ? 'गलत ओटीपी।' : 'Incorrect OTP. Try the code shown above.';
+        $stage = 'otp';
+    }
+}
+
+// PPMS role quick-pick (only this product's roles) — bypasses OTP for the fast demo tour.
 $quick = [
   ['SECRETARY','Secretary','🏛'],['EIC','Engineer-in-Chief','⚙'],['SE','Superintending Engr','📐'],
   ['EE','Executive Engineer','📋'],['AE','Assistant Engineer','📏'],['JE','Junior Engineer','🛠'],
@@ -56,17 +84,32 @@ $acc = $APP['accent'];
 
         <?php if ($error): ?><div class="mt-4 bg-rose-50 text-rose-700 text-sm rounded-lg px-3 py-2 ring-1 ring-rose-200"><?= e($error) ?></div><?php endif; ?>
 
-        <form method="post" class="mt-5 space-y-4">
-          <div>
-            <label class="text-sm font-medium text-slate-700"><?= is_hi()?'उपयोगकर्ता नाम':'Username' ?></label>
-            <input name="username" required autofocus class="mt-1 w-full border border-slate-300 rounded-xl px-3 py-2.5" placeholder="e.g. ee">
+        <?php if ($stage === 'otp'): ?>
+          <div class="mt-4 bg-violet-50 ring-1 ring-violet-200 rounded-lg px-3 py-2.5 text-sm text-violet-800">
+            <?= is_hi()?'पंजीकृत मोबाइल पर ओटीपी भेजा गया।':'OTP sent to your registered mobile.' ?>
+            <div class="mt-1"><?= is_hi()?'डेमो ओटीपी':'Demo OTP' ?>: <b class="font-mono tracking-widest text-base"><?= e($_SESSION['ppms_otp'] ?? '') ?></b></div>
           </div>
-          <div>
-            <label class="text-sm font-medium text-slate-700"><?= is_hi()?'पासवर्ड':'Password' ?></label>
-            <input name="password" type="password" required class="mt-1 w-full border border-slate-300 rounded-xl px-3 py-2.5" placeholder="demo123">
-          </div>
-          <button class="w-full btn-acc font-semibold py-2.5 rounded-xl"><?= t('login') ?> →</button>
-        </form>
+          <form method="post" class="mt-5 space-y-4"><input type="hidden" name="step" value="otp">
+            <div>
+              <label class="text-sm font-medium text-slate-700"><?= is_hi()?'ओटीपी दर्ज करें':'Enter OTP' ?></label>
+              <input name="otp" required autofocus inputmode="numeric" value="<?= e($_SESSION['ppms_otp'] ?? '') ?>" class="mt-1 w-full border border-slate-300 rounded-xl px-3 py-2.5 font-mono tracking-widest" placeholder="6-digit code">
+            </div>
+            <button class="w-full btn-acc font-semibold py-2.5 rounded-xl"><?= is_hi()?'सत्यापित करें':'Verify & Sign in' ?> →</button>
+            <a href="login.php" class="block text-center text-xs text-slate-500 hover:underline"><?= is_hi()?'पुनः प्रारंभ करें':'Start over' ?></a>
+          </form>
+        <?php else: ?>
+          <form method="post" class="mt-5 space-y-4"><input type="hidden" name="step" value="credentials">
+            <div>
+              <label class="text-sm font-medium text-slate-700"><?= is_hi()?'उपयोगकर्ता नाम':'Username' ?></label>
+              <input name="username" required autofocus class="mt-1 w-full border border-slate-300 rounded-xl px-3 py-2.5" placeholder="e.g. ee">
+            </div>
+            <div>
+              <label class="text-sm font-medium text-slate-700"><?= is_hi()?'पासवर्ड':'Password' ?></label>
+              <input name="password" type="password" required class="mt-1 w-full border border-slate-300 rounded-xl px-3 py-2.5" placeholder="demo123">
+            </div>
+            <button class="w-full btn-acc font-semibold py-2.5 rounded-xl"><?= t('login') ?> →</button>
+          </form>
+        <?php endif; ?>
 
         <div class="mt-6 pt-5 border-t border-slate-200">
           <p class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold mb-2.5">Demo · one-click sign-in (PPMS roles)</p>
