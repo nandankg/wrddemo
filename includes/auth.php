@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/auth_roles.php';
+require_once __DIR__ . '/app_context.php';
 
 function current_user(): ?array { return $_SESSION['user'] ?? null; }
 function is_logged_in(): bool { return isset($_SESSION['user']); }
@@ -18,8 +20,10 @@ function login_user(string $username, string $password): bool {
     return false;
 }
 
-/** Quick role switch for the demo (no password) — only switches to a seeded role. */
+/** Quick role switch for the demo (no password). Scoped to the active product's roles. */
 function switch_to_role(string $role): bool {
+    $ctx = app_ctx();
+    if ($ctx && !role_allowed_in_app($role, $ctx['key'])) return false;
     $st = db()->prepare('SELECT * FROM users WHERE role = ? LIMIT 1');
     $st->execute([$role]);
     $u = $st->fetch();
