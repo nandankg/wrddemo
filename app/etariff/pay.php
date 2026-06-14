@@ -1,8 +1,9 @@
 <?php
 require_once __DIR__ . '/../../includes/auth.php';
-require_login();
 require_once __DIR__ . '/../../includes/functions.php';
-$pdo=db(); $u=current_user();
+require_once __DIR__ . '/lib.php';
+etariff_require_login();
+$pdo=db(); $u=current_user(); $role=user_role();
 $id=(int)($_GET['id']??0);
 $b=$pdo->query("SELECT b.*,c.name cname,c.consumer_id cno,d.id div_id,d.name divn,d.bank_account,d.bank_name
   FROM bills b JOIN consumers c ON c.id=b.consumer_id JOIN divisions d ON d.id=c.division_id
@@ -10,7 +11,7 @@ $b=$pdo->query("SELECT b.*,c.name cname,c.consumer_id cno,d.id div_id,d.name div
 if(!$b){ http_response_code(404); exit('Bill not found.'); }
 
 $done=false; $txn='';
-if($_SERVER['REQUEST_METHOD']==='POST' && $b['status']==='Demand Raised'){
+if($_SERVER['REQUEST_METHOD']==='POST' && $b['status']==='Demand Raised' && in_array($role,['CONSUMER','EE','ADMIN'],true)){
   $channel=$_POST['channel']??'JE-GRAS';
   $txn='GRAS'.strtoupper(bin2hex(random_bytes(4)));
   $pdo->prepare("INSERT INTO payments (txn_ref,bill_id,source_module,consumer_id,division_id,amount,channel,credited_account,status) VALUES (?,?, 'etariff',?,?,?,?,?, 'Success')")
@@ -20,7 +21,8 @@ if($_SERVER['REQUEST_METHOD']==='POST' && $b['status']==='Demand Raised'){
   $done=true;
 }
 
-$LAYOUT='app'; $ACTIVE='etariff'; $PAGE_TITLE='Payment';
+set_app_context('etariff');
+$LAYOUT='app'; $ACTIVE='bills'; $PAGE_TITLE='Payment';
 require __DIR__ . '/../../includes/header.php';
 ?>
 <a href="index.php?id=<?= $id ?>" class="text-sm text-slate-500 hover:text-brand">← <?= is_hi()?'बिल':'Bill' ?> <?= e($b['bill_no']) ?></a>
@@ -52,7 +54,7 @@ require __DIR__ . '/../../includes/header.php';
       </table>
       <div class="flex gap-2 mt-6">
         <button onclick="print()" class="flex-1 border border-slate-300 rounded-xl py-2.5 font-semibold text-slate-700">🖨 <?= is_hi()?'रसीद':'Receipt' ?></button>
-        <a href="<?= base_url('index.php') ?>" class="flex-1 bg-brand text-white rounded-xl py-2.5 font-semibold text-center"><?= t('dashboard') ?></a>
+        <a href="<?= base_url('app/etariff/index.php') ?>" class="flex-1 btn-acc rounded-xl py-2.5 font-semibold text-center"><?= t('dashboard') ?></a>
       </div>
     </div>
   </div>
