@@ -117,13 +117,15 @@ function seed_demo(PDO $pdo): void {
     ];
     $ins = $pdo->prepare('INSERT INTO contractors (reg_no,name,name_hi,class,pan,gst,district,status,risk_score,valid_upto,registered_on,qr_token) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)');
     foreach ($contractors as $c) { $c[] = bin2hex(random_bytes(6)); $ins->execute($c); }
+    // Link the demo contractor login to its firm (portal scoping, consumer-style).
+    $pdo->prepare("UPDATE contractors SET login_user='contractor' WHERE reg_no=?")->execute(['WRD/REG/3/0451']);
 
     // ---- Contractor applications (processing inbox) ----
     $apps = [
         ['WRD/ACK/2526/1001',1,'Renewal','I','EIC','Pending Approval',45000,1,'2025-05-20'],
-        ['WRD/ACK/2526/1002',5,'Renewal','II','DS','Under Process',30000,1,'2025-05-25'],
+        ['WRD/ACK/2526/1002',5,'Renewal','II','EE','Under Process',30000,1,'2025-05-25'],
         ['WRD/ACK/2526/1003',null,'New','III','ASO','Document Verification',20000,1,'2025-06-01'],
-        ['WRD/ACK/2526/1004',null,'New','IV','SO','Under Process',10000,0,'2025-06-02'],
+        ['WRD/ACK/2526/1004',null,'New','IV','AE','Under Process',10000,0,'2025-06-02'],
     ];
     $ins = $pdo->prepare('INSERT INTO contractor_apps (ack_no,contractor_id,type,class,stage,status,fee,fee_paid,applied_on) VALUES (?,?,?,?,?,?,?,?,?)');
     foreach ($apps as $a) $ins->execute($a);

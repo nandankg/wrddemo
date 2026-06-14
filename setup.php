@@ -102,7 +102,8 @@ try {
         reg_no VARCHAR(40) UNIQUE, name VARCHAR(160), name_hi VARCHAR(200),
         class VARCHAR(10), pan VARCHAR(15), gst VARCHAR(20),
         district VARCHAR(80), status VARCHAR(30), risk_score INT,
-        valid_upto DATE, registered_on DATE, qr_token VARCHAR(40)
+        valid_upto DATE, registered_on DATE, qr_token VARCHAR(40),
+        login_user VARCHAR(60) NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     SQL);
 
