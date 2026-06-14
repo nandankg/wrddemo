@@ -33,6 +33,8 @@ function wrd_apps(): array {
             'roles' => ['CONTRACTOR','ASO','AE','EE','EIC'],
             'nav' => [
                 ['key'=>'dashboard','label'=>'Registry Desk','url'=>'app/contractor/index.php','icon'=>'▤'],
+                ['key'=>'applications','label'=>'Applications','url'=>'app/contractor/applications.php','icon'=>'📋'],
+                ['key'=>'registry','label'=>'Registered Contractors','url'=>'app/contractor/registry.php','icon'=>'📒'],
                 ['key'=>'verify','label'=>'Verify Certificate','url'=>'app/contractor/verify.php','icon'=>'✔'],
             ],
         ],

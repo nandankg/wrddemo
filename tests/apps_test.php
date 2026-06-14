@@ -33,3 +33,7 @@ it('ppms nav exposes dashboard, projects, requisitions, reports in order', funct
 it('etariff nav exposes dashboard and bills in order', function () {
     assert_eq(['dashboard','bills'], array_column(wrd_app('etariff')['nav'], 'key'));
 });
+
+it('contractor nav exposes dashboard, applications, registry, verify in order', function () {
+    assert_eq(['dashboard','applications','registry','verify'], array_column(wrd_app('contractor')['nav'], 'key'));
+});
