@@ -45,9 +45,11 @@ function wrd_apps(): array {
             'tagline' => 'Apply, technical scrutiny, approval & licence issuance.',
             'tagline_hi' => 'आवेदन, तकनीकी जाँच, अनुमोदन एवं लाइसेंस जारी।',
             'home' => 'app/allocation/index.php',
-            'roles' => ['CONSUMER','AE','EE','CE','SECRETARY'],
+            'roles' => ['CONSUMER','AE','EE','SE','CE','EIC','SECRETARY'],
             'nav' => [
                 ['key'=>'dashboard','label'=>'Allocation Desk','url'=>'app/allocation/index.php','icon'=>'▤'],
+                ['key'=>'applications','label'=>'Applications','url'=>'app/allocation/applications.php','icon'=>'📋','roles'=>['AE','EE','SE','CE','EIC','SECRETARY']],
+                ['key'=>'licences','label'=>'Licences','url'=>'app/allocation/licences.php','icon'=>'📜','roles'=>['AE','EE','SE','CE','EIC','SECRETARY']],
             ],
         ],
         'etariff' => [
