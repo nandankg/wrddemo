@@ -1,7 +1,8 @@
 <?php
 require_once __DIR__ . '/../../includes/auth.php';
-require_login();
 require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/lib.php';
+ppms_require_login();
 $pdo = db();
 $u = current_user(); $role = user_role();
 $actor = $u['name'] . ' (' . $role . ')';
@@ -59,7 +60,8 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
   }
 }
 
-$LAYOUT='app'; $ACTIVE='ppms_req'; $PAGE_TITLE='Fund Requisition';
+set_app_context('ppms');
+$LAYOUT='app'; $ACTIVE='requisitions'; $PAGE_TITLE='Fund Requisition';
 require __DIR__ . '/../../includes/header.php';
 
 $viewId = (int)($_GET['id'] ?? 0);

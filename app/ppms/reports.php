@@ -1,7 +1,8 @@
 <?php
 require_once __DIR__ . '/../../includes/auth.php';
-require_login();
 require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/lib.php';
+ppms_require_login();
 $pdo=db();
 
 // ---- CSV export ----
@@ -24,7 +25,8 @@ $st=$pdo->prepare("SELECT p.*,s.name scheme,d.name divn FROM projects p JOIN sch
 $st->execute($p); $rows=$st->fetchAll();
 $divs=$pdo->query("SELECT id,name FROM divisions")->fetchAll();
 
-$LAYOUT='app'; $ACTIVE='ppms_reports'; $PAGE_TITLE='Reports & MIS';
+set_app_context('ppms');
+$LAYOUT='app'; $ACTIVE='reports'; $PAGE_TITLE='Reports & MIS';
 require __DIR__ . '/../../includes/header.php';
 ?>
 <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
