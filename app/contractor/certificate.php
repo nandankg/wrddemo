@@ -1,7 +1,8 @@
 <?php
 require_once __DIR__ . '/../../includes/auth.php';
-require_login();
 require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/lib.php';
+contractor_require_login();
 $pdo=db(); $id=(int)($_GET['id']??0);
 $c=$pdo->query("SELECT * FROM contractors WHERE id=$id")->fetch();
 if(!$c){ http_response_code(404); exit('Not found.'); }
