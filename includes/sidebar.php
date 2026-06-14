@@ -1,40 +1,48 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__ . '/app_context.php';
 
-function render_sidebar(string $active): void {
-    $items = [
-        ['dashboard',   t('command_centre'), base_url('app/dashboard.php'),        '▤'],
-        ['ppms_req',    t('fund_req'),       base_url('app/ppms/requisitions.php'), '₹'],
-        ['ppms_reports',t('reports'),        base_url('app/ppms/reports.php'),      '▦'],
-        ['contractor',  t('contractor_reg'), base_url('app/contractor/index.php'),  '⚒'],
-        ['allocation',  t('allocation'),     base_url('app/allocation/index.php'),  '🜄'],
-        ['etariff',     t('etariff'),        base_url('app/etariff/index.php'),     '◫'],
-        ['cms',         t('cms'),            base_url('app/cms/index.php'),         '✎'],
-    ];
-    $roles = ['SECRETARY','EIC','CE','SE','EE','AE','JE','FINANCE','ADMIN','CONSUMER','CONTRACTOR'];
-    $cur = user_role();
+/** Pure: nav items for the active product (testable without rendering). */
+function app_sidebar_items(): array {
+    return app_nav();
+}
+
+/** Render the themed, per-product sidebar. */
+function render_app_sidebar(string $active): void {
+    $ctx = app_ctx();
+    if (!$ctx) return;
+    $acc   = $ctx['accent'];
+    $items = app_sidebar_items();
+    $roles = $ctx['roles'];
+    $cur   = function_exists('user_role') ? user_role() : null;
     ?>
-    <aside class="hidden lg:flex flex-col w-64 shrink-0 bg-ink text-white px-3 py-5 gap-1">
-      <div class="px-2 pb-3 mb-2 border-b border-white/10">
-        <p class="text-[11px] uppercase tracking-wider text-cyan-300/80 font-semibold">Integrated Suite</p>
-        <p class="text-sm text-slate-300 mt-0.5">5 Components · One Backbone</p>
+    <aside class="hidden lg:flex flex-col w-64 shrink-0 text-white px-3 py-5 gap-1"
+           style="background:#0a263d">
+      <div class="px-2 pb-3 mb-2 border-b border-white/10 flex items-center gap-2">
+        <span class="w-8 h-8 rounded-lg grid place-items-center text-lg"
+              style="background:<?= e($acc) ?>1f;color:<?= e($acc) ?>"><?= $ctx['icon'] ?></span>
+        <div>
+          <p class="text-sm font-semibold leading-tight"><?= e($ctx['short']) ?></p>
+          <p class="text-[11px] text-slate-400"><?= is_hi() ? e($ctx['name_hi']) : e($ctx['name']) ?></p>
+        </div>
       </div>
-      <?php foreach ($items as [$key,$label,$url,$icon]): ?>
-        <a href="<?= $url ?>" class="nav-link <?= $active===$key?'active':'' ?>">
-          <span class="w-5 text-center text-base"><?= $icon ?></span><span><?= $label ?></span>
+      <?php foreach ($items as $it): ?>
+        <a href="<?= base_url($it['url']) ?>"
+           class="nav-link <?= $active===$it['key']?'active':'' ?>"
+           style="<?= $active===$it['key'] ? '--acc:'.e($acc).';' : '' ?>">
+          <span class="w-5 text-center text-base"><?= $it['icon'] ?></span><span><?= e($it['label']) ?></span>
         </a>
       <?php endforeach; ?>
 
-      <!-- Demo role switcher -->
       <div class="mt-auto pt-4 border-t border-white/10">
-        <label class="text-[11px] uppercase tracking-wider text-cyan-300/80 font-semibold px-2">Demo · Switch Role</label>
+        <label class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold px-2">Demo · Switch Role</label>
         <select onchange="if(this.value)location.href='<?= base_url('auth/role_switch.php') ?>?role='+this.value"
                 class="mt-1.5 w-full bg-ink2 border border-white/15 text-slate-100 text-sm rounded-lg px-2 py-2 focus:outline-none">
           <?php foreach ($roles as $r): ?>
-            <option value="<?= $r ?>" <?= $cur===$r?'selected':'' ?>><?= e($r) ?></option>
+            <option value="<?= e($r) ?>" <?= $cur===$r?'selected':'' ?>><?= e($r) ?></option>
           <?php endforeach; ?>
         </select>
-        <p class="text-[11px] text-slate-400 mt-2 px-2">Jump across the approval hierarchy instantly during the presentation.</p>
+        <p class="text-[11px] text-slate-400 mt-2 px-2"><?= is_hi()?'इस उत्पाद की भूमिकाओं के बीच स्विच करें।':'Switch across this product\'s roles during the demo.' ?></p>
       </div>
     </aside>
     <?php

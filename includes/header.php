@@ -131,7 +131,7 @@ tailwind.config = {
 <?php if ($LAYOUT === 'app'):
     require __DIR__ . '/sidebar.php'; ?>
 <div class="flex-1 flex max-w-[1500px] w-full mx-auto">
-  <?php render_sidebar($ACTIVE); ?>
+  <?php render_app_sidebar($ACTIVE); ?>
   <main id="main" class="flex-1 min-w-0 px-4 sm:px-6 py-6 bg-paper">
 <?php else: ?>
   <main id="main" class="flex-1">
