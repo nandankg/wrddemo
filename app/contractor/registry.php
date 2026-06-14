@@ -4,6 +4,8 @@ require_once __DIR__ . '/../../includes/i18n.php';
 require_once __DIR__ . '/../../includes/functions.php';
 require_once __DIR__ . '/lib.php';
 contractor_require_login();
+// Back-office only: the register (with PAN/GST) is not exposed to contractor logins.
+if (contractor_role_view(user_role()) === 'contractor') { header('Location: ' . base_url('app/contractor/index.php')); exit; }
 $pdo=db();
 $contractors=$pdo->query("SELECT * FROM contractors ORDER BY status='Blacklisted' DESC, name")->fetchAll();
 

@@ -8,7 +8,7 @@ $pdo=db(); $u=current_user(); $role=user_role(); $actor=$u['name'].' ('.$role.')
 
 // Contractor self-registration (creates contractor + application at ASO).
 if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='register' && $role==='CONTRACTOR') {
-  $class=$_POST['class']??'IV';
+  $class=in_array($_POST['class']??'',['I','II','III','IV'],true)?$_POST['class']:'IV';
   $cnt=(int)$pdo->query('SELECT COUNT(*) FROM contractors')->fetchColumn()+451;
   $reg=sprintf('WRD/REG/3/%04d',$cnt);
   $qr=bin2hex(random_bytes(6));
