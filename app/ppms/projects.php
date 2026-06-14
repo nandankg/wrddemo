@@ -36,6 +36,8 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
       $pdo->prepare("UPDATE progress_updates SET status='Verified',verified_by=? WHERE id=?")->execute([$u['id'],$gid]);
       $pdo->prepare("UPDATE projects SET physical_pct=?,financial_pct=? WHERE id=?")->execute([(int)$g['physical_pct'],(int)$g['financial_pct'],$g['project_id']]);
       add_audit($pdo,'project',(int)$g['project_id'],'Progress verified','AE','AE',$actor,'Applied Physical '.$g['physical_pct'].'% · Financial '.$g['financial_pct'].'%');
+      $pname = $pdo->query("SELECT name FROM projects WHERE id=".(int)$g['project_id'])->fetchColumn();
+      ppms_notify($pdo,'SMS','JE · +91-9430xx210','Progress for '.$pname.' verified & applied ('.$g['physical_pct'].'% physical).','project #'.(int)$g['project_id']);
       flash('Progress verified and applied.');
     } elseif ($act==='reject') {
       $pdo->prepare("UPDATE progress_updates SET status='Rejected',verified_by=? WHERE id=?")->execute([$u['id'],$gid]);
