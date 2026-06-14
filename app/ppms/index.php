@@ -21,7 +21,7 @@ $reqs = $pdo->query("SELECT id,req_no,status,amount_requested,allocated_amount F
 $progress = $pdo->query("SELECT pu.id,pu.status,p.name project_name FROM progress_updates pu JOIN projects p ON p.id=pu.project_id ORDER BY pu.id DESC")->fetchAll();
 
 $k = ppms_kpis($projects);
-$f = ppms_fund_kpis($reqs);
+$fund = ppms_fund_kpis($reqs);   // not $f — header.php uses $f for the flash message
 $tasks = ppms_pending_actions($role, $reqs, $progress);
 
 // Map data for GIS (oversight only)
@@ -60,10 +60,10 @@ $viewLabel = [
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
   <?php
   $kpis = $view==='finance' ? [
-    [is_hi()?'निर्गत राशि':'Funds Released', inr($f['released_amount']), 'text-emerald-700'],
-    [is_hi()?'वित्त समीक्षा हेतु':'Awaiting Finance', (string)$f['under_finance'], 'text-amber-700'],
-    [is_hi()?'निर्गत हेतु तैयार':'Ready to Release', (string)$f['pending_release'], 'text-sky-700'],
-    [is_hi()?'कुल माँगें':'Total Requisitions', (string)$f['count'], 'text-ink'],
+    [is_hi()?'निर्गत राशि':'Funds Released', inr($fund['released_amount']), 'text-emerald-700'],
+    [is_hi()?'वित्त समीक्षा हेतु':'Awaiting Finance', (string)$fund['under_finance'], 'text-amber-700'],
+    [is_hi()?'निर्गत हेतु तैयार':'Ready to Release', (string)$fund['pending_release'], 'text-sky-700'],
+    [is_hi()?'कुल माँगें':'Total Requisitions', (string)$fund['count'], 'text-ink'],
   ] : [
     [is_hi()?'स्वीकृत परिव्यय':'Sanctioned Outlay', inr($k['sanctioned']), 'text-ink'],
     [is_hi()?'उपयोगिता':'Utilisation', $k['utilisation'].'%', 'text-emerald-700'],
