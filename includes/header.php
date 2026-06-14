@@ -27,7 +27,7 @@ $nav = [
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= $PAGE_TITLE ? e($PAGE_TITLE).' · ' : '' ?><?= $APP ? e($APP['short']).' · ' : '' ?>WRD Jharkhand</title>
-<meta name="description" content="Water Resources Department, Government of Jharkhand — Integrated Digital Backbone.">
+<meta name="description" content="Water Resources Department, Government of Jharkhand — official digital services suite.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Mukta:wght@300;400;500;600;700&display=swap" rel="stylesheet">

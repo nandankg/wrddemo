@@ -58,7 +58,7 @@ h1,h2,h3,.display{ font-family:'Fraunces',Georgia,serif; letter-spacing:-0.01em;
 .nav-link{ display:flex; align-items:center; gap:.7rem; padding:.6rem .85rem; border-radius:11px;
   color:#cbd5e1; font-weight:500; font-size:.93rem; transition:.15s; }
 .nav-link:hover{ background:rgba(255,255,255,.08); color:#fff; }
-.nav-link.active{ background:var(--brand); color:#fff; box-shadow:0 8px 20px -10px rgba(14,124,134,.8); }
+/* .nav-link.active is defined once in the accent-token section below (uses --acc). */
 
 /* skip link */
 .skip{ position:absolute; left:-999px; top:0; z-index:100; background:var(--gold); color:#fff; padding:.6rem 1rem; border-radius:0 0 10px 0; }
@@ -87,10 +87,12 @@ html[lang="hi"] body{ font-weight:400; }
 /* ===== Per-product accent design-system tokens ===== */
 :root { --acc: #0E7C86; }
 
-/* Sidebar active item uses the product accent */
+/* Sidebar active item uses the product accent — clearly visible on the dark sidebar */
 .nav-link.active {
-  background: color-mix(in srgb, var(--acc) 18%, transparent);
+  background: rgba(255,255,255,.10);                       /* fallback for no color-mix */
+  background: color-mix(in srgb, var(--acc) 34%, transparent);
   color: #fff;
+  font-weight: 600;
   box-shadow: inset 3px 0 0 var(--acc);
 }
 

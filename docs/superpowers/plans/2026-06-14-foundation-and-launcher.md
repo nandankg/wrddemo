@@ -817,3 +817,12 @@ git push origin main
 - `app/dashboard.php` (the old aggregate Command Centre) is **replaced** by the PPMS plan with a PPMS-scoped `app/ppms/index.php`; remove the aggregate page there, not here.
 - The website product plan adds `public/home.php` (the public site home referenced by the registry) and the CMS editor/approver split.
 - New roles introduced by the registry (`ASO`, `ACCOUNTS`, `CITIZEN`, `EDITOR`) must be added to the seed `users` table in the relevant product plan so the demo role-switcher resolves them.
+
+### Carried-forward items from the foundation final review (fix in the relevant product plan)
+
+These are expected consequences of building the foundation before the products. The launcher itself is complete; these affect the inner pages each product plan will (re)build:
+
+- **PPMS plan:** create `app/ppms/index.php` (the registry's PPMS `home`, currently a 404 from the launcher card). Replace the old aggregate `app/dashboard.php` Command Centre. Update legacy `app/ppms/reports.php` (`$ACTIVE='ppms_reports'`) and `app/ppms/requisitions.php` (`$ACTIVE='ppms_req'`) to call `set_app_context('ppms')` and use the registry nav keys `reports` / `requisitions`, so the themed sidebar renders and highlights correctly.
+- **Website plan:** create `public/home.php` (the registry's Website `home`, currently a 404 from the launcher card).
+- **All product plans:** every app-layout page must call `set_app_context('<key>')` before requiring `includes/header.php`; without it `render_app_sidebar()` returns early and the page shows no sidebar (this is why the legacy aggregate dashboard currently renders without one during the transition).
+- **Role switch endpoint:** `auth/role_switch.php` still uses a hardcoded global role allow-list and redirects to `app/dashboard.php`. When products wire up their in-product role switchers, update it to validate against `app_ctx()['roles']` and redirect back to the referring product (e.g. via `HTTP_REFERER` or a `return` param) instead of the aggregate page.
