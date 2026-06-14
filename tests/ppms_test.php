@@ -84,6 +84,7 @@ it('ppms_milestone_status flags overdue non-done items as Delayed', function () 
     assert_eq('Delayed',    ppms_milestone_status('Pending', null, '2026-01-01', '2026-06-14'));
     assert_eq('In-Progress',ppms_milestone_status('In-Progress', null, '2026-12-01', '2026-06-14'));
     assert_eq('Pending',    ppms_milestone_status('Pending', null, '2026-12-31', '2026-06-14'));
+    assert_eq('In-Progress', ppms_milestone_status('In-Progress', null, '2026-06-14', '2026-06-14')); // due today ≠ delayed
 });
 
 it('ppms_milestone_progress is weighted by Done milestones', function () {

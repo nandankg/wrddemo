@@ -89,7 +89,11 @@ function ppms_pending_actions(string $role, array $reqs, array $progress): array
     return $out;
 }
 
-/** Effective milestone status: an unfinished item past its planned date is Delayed. */
+/**
+ * Effective milestone status: an unfinished item past its planned date is Delayed.
+ * $actual is accepted for call-site consistency (pages pass the row's actual_date)
+ * and is reserved for future planned-vs-actual variance display; not needed here.
+ */
 function ppms_milestone_status(string $status, ?string $actual, string $planned, string $today): string {
     if ($status === 'Done') return 'Done';
     if ($planned < $today)  return 'Delayed';
@@ -179,8 +183,12 @@ function ppms_otp_generate(): string {
 
 /** Write a simulated notification (SMS / OTP / EMAIL). DB side-effect; not unit-tested. */
 function ppms_notify(PDO $pdo, string $channel, string $to, string $message, ?string $entity = null): void {
-    $pdo->prepare('INSERT INTO notifications (channel,to_label,message,entity,status) VALUES (?,?,?,?,?)')
-        ->execute([$channel, $to, $message, $entity, 'Sent']);
+    try {
+        $pdo->prepare('INSERT INTO notifications (channel,to_label,message,entity,status) VALUES (?,?,?,?,?)')
+            ->execute([$channel, $to, $message, $entity, 'Sent']);
+    } catch (Throwable $e) {
+        // notifications table may not exist yet on a fresh checkout — never block the page
+    }
 }
 
 /** Unread notification count (for the header bell). DB read; not unit-tested. */
