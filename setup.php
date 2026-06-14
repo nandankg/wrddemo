@@ -22,7 +22,7 @@ try {
 
     // 2. Drop existing demo tables (clean reset).
     $pdo->exec('SET FOREIGN_KEY_CHECKS=0');
-    foreach (['progress_updates','workflow_log','payments','bills','drawal_entries','consumers','allocations',
+    foreach (['scheduled_reports','notifications','milestones','progress_updates','workflow_log','payments','bills','drawal_entries','consumers','allocations',
               'contractor_apps','contractors','fund_requisitions','projects','schemes',
               'divisions','content','grievances','rti_applications','users'] as $t) {
         $pdo->exec("DROP TABLE IF EXISTS `$t`");
@@ -92,6 +92,45 @@ try {
         note VARCHAR(255),
         status VARCHAR(20), -- Submitted, Verified, Rejected
         submitted_by INT, verified_by INT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    SQL);
+
+    $pdo->exec(<<<SQL
+    CREATE TABLE milestones (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        project_id INT,
+        name VARCHAR(160), name_hi VARCHAR(160) NULL,
+        planned_date DATE, actual_date DATE NULL,
+        weight INT, -- contribution toward project completion
+        status VARCHAR(20), -- Pending, In-Progress, Done, Delayed
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    SQL);
+
+    $pdo->exec(<<<SQL
+    CREATE TABLE notifications (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        channel VARCHAR(10), -- SMS, OTP, EMAIL
+        to_label VARCHAR(120),
+        message VARCHAR(255),
+        entity VARCHAR(60) NULL,
+        status VARCHAR(12), -- Sent, Delivered
+        is_read TINYINT DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    SQL);
+
+    $pdo->exec(<<<SQL
+    CREATE TABLE scheduled_reports (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(120),
+        report_type VARCHAR(30), -- project, division, scheme, requisition, monthly_mis
+        frequency VARCHAR(12),   -- Daily, Weekly, Monthly, Quarterly
+        format VARCHAR(8),       -- PDF, XLS, DOC, CSV
+        recipients VARCHAR(200),
+        last_run DATETIME NULL, next_run DATE,
+        active TINYINT DEFAULT 1,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     SQL);
@@ -211,7 +250,7 @@ try {
         subject VARCHAR(240), status VARCHAR(30), filed_on DATE, fee_paid TINYINT
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     SQL);
-    ok('All 17 tables created (utf8mb4 / Hindi-ready).');
+    ok('All 20 tables created (utf8mb4 / Hindi-ready).');
 
     // 4. Seed ----------------------------------------------------------------
     require __DIR__ . '/sql/seed.php';   // populates using $pdo

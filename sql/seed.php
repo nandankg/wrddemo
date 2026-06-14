@@ -3,6 +3,7 @@
  * Seed data for the WRD Jharkhand demo. Called by setup.php with an open PDO.
  */
 declare(strict_types=1);
+require_once __DIR__ . '/../app/ppms/lib.php';
 
 function seed_demo(PDO $pdo): void {
     $pw = password_hash(DEMO_PASSWORD, PASSWORD_DEFAULT);
@@ -102,6 +103,49 @@ function seed_demo(PDO $pdo): void {
     $ins = $pdo->prepare('INSERT INTO progress_updates (project_id,physical_pct,financial_pct,note,status,submitted_by,verified_by,created_at) VALUES (?,?,?,?,?,?,?,?)');
     foreach ($prog as $i=>$g) {
         $ins->execute([$g[0],$g[1],$g[2],$g[3],$g[4],$g[5],$g[6], date('Y-m-d H:i:s', strtotime('-'.(3+$i*2).' days'))]);
+    }
+
+    // ---- Milestones (per project; mix of done / in-progress / overdue) ----
+    $ms = [
+        // project_id, name, name_hi, planned_date, actual_date, weight, status
+        [1,'Detailed survey & DPR','सर्वेक्षण एवं डीपीआर','2023-06-30','2023-06-20',1,'Done'],
+        [1,'Land acquisition','भू-अर्जन','2023-12-31','2023-12-15',2,'Done'],
+        [1,'Spillway & gates','स्पिलवे एवं गेट','2025-03-31',null,3,'In-Progress'],
+        [1,'Canal network','नहर नेटवर्क','2026-01-31',null,2,'Pending'],
+        [3,'Desilting works','गाद निकासी','2024-09-30','2024-10-10',2,'Done'],
+        [3,'Embankment strengthening','तटबंध सुदृढ़ीकरण','2025-04-30',null,2,'In-Progress'],
+        [3,'Gate rehabilitation','गेट पुनर्वास','2025-02-28',null,1,'Pending'],   // overdue -> Delayed
+        [5,'Site mobilisation','स्थल जुटाव','2024-06-30','2024-07-20',1,'Done'],
+        [5,'Phase-III spillway','चरण-३ स्पिलवे','2025-01-31',null,3,'Pending'],    // overdue -> Delayed
+        [5,'Powerhouse civil','पावरहाउस सिविल','2026-09-30',null,2,'Pending'],
+    ];
+    $ins = $pdo->prepare('INSERT INTO milestones (project_id,name,name_hi,planned_date,actual_date,weight,status) VALUES (?,?,?,?,?,?,?)');
+    foreach ($ms as $m) $ins->execute($m);
+
+    // ---- Notifications (pre-existing SMS / OTP / email events) ----
+    $notif = [
+        ['SMS','EE · +91-9430xx521','Fund requisition WRD/FR/2526/0001 released: ₹2.50 Cr.','fund_requisition #1','Delivered',1,12],
+        ['SMS','AE · +91-9430xx340','Progress for Konar Canal verified & applied.','project #2','Delivered',1,9],
+        ['EMAIL','Secretariat','Monthly MIS (May 2025) generated and emailed.','monthly_mis','Sent',1,30],
+        ['OTP','JE · +91-9430xx210','Your PPMS login OTP is 481922 (demo).','login','Delivered',0,1],
+        ['SMS','EE · +91-9430xx521','Milestone "Land acquisition" marked Done for Subarnarekha.','project #1','Delivered',0,2],
+    ];
+    $ins = $pdo->prepare('INSERT INTO notifications (channel,to_label,message,entity,status,is_read,created_at) VALUES (?,?,?,?,?,?,?)');
+    foreach ($notif as $x) {
+        $ins->execute([$x[0],$x[1],$x[2],$x[3],$x[4],$x[5], date('Y-m-d H:i:s', strtotime('-'.$x[6].' days'))]);
+    }
+
+    // ---- Scheduled reports ----
+    $sched = [
+        // name, report_type, frequency, format, recipients, active
+        ['Monthly MIS — Secretariat','monthly_mis','Monthly','PDF','Secretary, EIC, Finance',1],
+        ['Division-wise Progress','division','Weekly','XLS','All Executive Engineers',1],
+        ['Fund Requisition Register','requisition','Monthly','CSV','Finance Cell',1],
+    ];
+    $ins = $pdo->prepare('INSERT INTO scheduled_reports (name,report_type,frequency,format,recipients,last_run,next_run,active) VALUES (?,?,?,?,?,?,?,?)');
+    foreach ($sched as $s) {
+        $next = ppms_next_run($s[2], date('Y-m-d'));
+        $ins->execute([$s[0],$s[1],$s[2],$s[3],$s[4], date('Y-m-d H:i:s', strtotime('-'.rand(3,20).' days')), $next, $s[5]]);
     }
 
     // ---- Contractors (with risk scores; one blacklisted) ----
