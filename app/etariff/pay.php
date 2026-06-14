@@ -25,7 +25,7 @@ set_app_context('etariff');
 $LAYOUT='app'; $ACTIVE='bills'; $PAGE_TITLE='Payment';
 require __DIR__ . '/../../includes/header.php';
 ?>
-<a href="index.php?id=<?= $id ?>" class="text-sm text-slate-500 hover:text-brand">← <?= is_hi()?'बिल':'Bill' ?> <?= e($b['bill_no']) ?></a>
+<a href="<?= base_url('app/etariff/bills.php') ?>?id=<?= $id ?>" class="text-sm text-slate-500 hover:text-brand">← <?= is_hi()?'बिल':'Bill' ?> <?= e($b['bill_no']) ?></a>
 
 <?php if($done): // ===== RECEIPT ===== ?>
   <div class="max-w-xl mx-auto mt-6">
