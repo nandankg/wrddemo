@@ -29,3 +29,7 @@ it('ppms roles match the spec', function () {
 it('ppms nav exposes dashboard, projects, requisitions, reports in order', function () {
     assert_eq(['dashboard','projects','requisitions','reports'], array_column(wrd_app('ppms')['nav'], 'key'));
 });
+
+it('etariff nav exposes dashboard and bills in order', function () {
+    assert_eq(['dashboard','bills'], array_column(wrd_app('etariff')['nav'], 'key'));
+});

@@ -57,7 +57,8 @@ function wrd_apps(): array {
             'home' => 'app/etariff/index.php',
             'roles' => ['CONSUMER','JE','AE','EE','ACCOUNTS','SECRETARY'],
             'nav' => [
-                ['key'=>'dashboard','label'=>'Billing Desk','url'=>'app/etariff/index.php','icon'=>'▤'],
+                ['key'=>'dashboard','label'=>'Revenue & Billing','url'=>'app/etariff/index.php','icon'=>'▤'],
+                ['key'=>'bills','label'=>'Bills & Drawal','url'=>'app/etariff/bills.php','icon'=>'🧾'],
             ],
         ],
         'website' => [
