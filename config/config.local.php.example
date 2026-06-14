@@ -1,0 +1,20 @@
+<?php
+/**
+ * Per-environment database credentials.
+ *
+ * Copy this file to  config/config.local.php  on the server and fill in your
+ * real values. config/config.local.php is gitignored, so it is NEVER overwritten
+ * by a Git deploy or ZIP re-upload — your credentials survive every redeploy.
+ *
+ * Only the constants you set here override the defaults in config/config.php.
+ * On Hostinger the host is usually "localhost" and the names are prefixed,
+ * e.g. u123456789_wrd / u123456789_admin.
+ */
+
+declare(strict_types=1);
+
+define('DB_HOST', 'localhost');
+define('DB_PORT', '3306');
+define('DB_NAME', 'CHANGE_ME_dbname');
+define('DB_USER', 'CHANGE_ME_dbuser');
+define('DB_PASS', 'CHANGE_ME_password');

@@ -13,12 +13,19 @@ declare(strict_types=1);
 
 session_start();
 
-// ---- Database (default XAMPP credentials) ----
-define('DB_HOST', '127.0.0.1');
-define('DB_PORT', '3306');
-define('DB_NAME', 'wrd_demo');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+// ---- Database ----
+// Deployment override: if config/config.local.php exists (gitignored), it can
+// define any of the DB_* constants below for this environment (e.g. Hostinger).
+// A Git pull / re-upload never touches that file, so credentials survive redeploys.
+$__local = __DIR__ . '/config.local.php';
+if (is_file($__local)) require $__local;
+
+// Defaults (local XAMPP) — only applied if not already set by config.local.php.
+defined('DB_HOST') || define('DB_HOST', '127.0.0.1');
+defined('DB_PORT') || define('DB_PORT', '3306');
+defined('DB_NAME') || define('DB_NAME', 'wrd_demo');
+defined('DB_USER') || define('DB_USER', 'root');
+defined('DB_PASS') || define('DB_PASS', '');
 
 // ---- Application ----
 define('APP_NAME', 'WRD Jharkhand — Integrated Digital Backbone');
