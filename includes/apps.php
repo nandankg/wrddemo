@@ -19,7 +19,7 @@ function wrd_apps(): array {
             'nav' => [
                 ['key'=>'dashboard','label'=>'Command Centre','url'=>'app/ppms/index.php','icon'=>'▤'],
                 ['key'=>'projects','label'=>'Projects & Progress','url'=>'app/ppms/projects.php','icon'=>'📍'],
-                ['key'=>'requisitions','label'=>'Fund Requisition','url'=>'app/ppms/requisitions.php','icon'=>'₹'],
+                ['key'=>'requisitions','label'=>'Fund Requisition','url'=>'app/ppms/requisitions.php','icon'=>'₹','roles'=>['EE','SE','EIC','FINANCE','SECRETARY']],
                 ['key'=>'reports','label'=>'Reports / MIS','url'=>'app/ppms/reports.php','icon'=>'▦'],
             ],
         ],
@@ -33,9 +33,9 @@ function wrd_apps(): array {
             'roles' => ['CONTRACTOR','ASO','AE','EE','EIC'],
             'nav' => [
                 ['key'=>'dashboard','label'=>'Registry Desk','url'=>'app/contractor/index.php','icon'=>'▤'],
-                ['key'=>'applications','label'=>'Applications','url'=>'app/contractor/applications.php','icon'=>'📋'],
-                ['key'=>'registry','label'=>'Registered Contractors','url'=>'app/contractor/registry.php','icon'=>'📒'],
-                ['key'=>'verify','label'=>'Verify Certificate','url'=>'app/contractor/verify.php','icon'=>'✔'],
+                ['key'=>'applications','label'=>'Applications','url'=>'app/contractor/applications.php','icon'=>'📋','roles'=>['ASO','AE','EE','EIC']],
+                ['key'=>'registry','label'=>'Registered Contractors','url'=>'app/contractor/registry.php','icon'=>'📒','roles'=>['ASO','AE','EE','EIC']],
+                ['key'=>'verify','label'=>'Verify Certificate','url'=>'app/contractor/verify.php','icon'=>'✔','roles'=>['ASO','AE','EE','EIC']],
             ],
         ],
         'allocation' => [

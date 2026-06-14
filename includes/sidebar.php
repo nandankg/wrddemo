@@ -12,9 +12,9 @@ function render_app_sidebar(string $active): void {
     $ctx = app_ctx();
     if (!$ctx) return;
     $acc   = $ctx['accent'];
-    $items = app_sidebar_items();
     $roles = $ctx['roles'];
     $cur   = function_exists('user_role') ? user_role() : null;
+    $items = app_nav_visible(app_sidebar_items(), $cur);
     ?>
     <aside class="hidden lg:flex flex-col w-64 shrink-0 text-white px-3 py-5 gap-1"
            style="background:#0a263d">
