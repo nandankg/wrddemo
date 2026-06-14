@@ -52,7 +52,7 @@ require __DIR__ . '/../../includes/header.php';
       </table>
       <div class="flex gap-2 mt-6">
         <button onclick="print()" class="flex-1 border border-slate-300 rounded-xl py-2.5 font-semibold text-slate-700">🖨 <?= is_hi()?'रसीद':'Receipt' ?></button>
-        <a href="<?= base_url('app/dashboard.php') ?>" class="flex-1 bg-brand text-white rounded-xl py-2.5 font-semibold text-center"><?= t('dashboard') ?></a>
+        <a href="<?= base_url('index.php') ?>" class="flex-1 bg-brand text-white rounded-xl py-2.5 font-semibold text-center"><?= t('dashboard') ?></a>
       </div>
     </div>
   </div>

@@ -6,11 +6,11 @@ require_once __DIR__ . '/../includes/functions.php';
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (login_user(trim($_POST['username'] ?? ''), $_POST['password'] ?? '')) {
-        header('Location: ' . base_url('app/dashboard.php')); exit;
+        header('Location: ' . base_url('index.php')); exit;
     }
     $error = is_hi() ? 'अमान्य उपयोगकर्ता नाम या पासवर्ड।' : 'Invalid username or password.';
 }
-if (is_logged_in()) { header('Location: ' . base_url('app/dashboard.php')); exit; }
+if (is_logged_in()) { header('Location: ' . base_url('index.php')); exit; }
 
 $quick = [
   ['secretary','Secretary',  '🏛'],['eic','Engineer-in-Chief','⚙'],['ee','Executive Engineer','📐'],

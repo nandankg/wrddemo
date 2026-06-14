@@ -277,7 +277,7 @@ body.hero-active .reveal .slide-number{color:#9fd0d8;}
     <div class="card dark"><div class="kpi"><?= inr($revenue) ?></div><div class="xsmall">Revenue</div></div>
     <div class="card dark"><div class="kpi"><?= $divisions ?></div><div class="xsmall">Divisions</div></div>
   </div>
-  <div><a class="demo-btn" href="<?= demo('app/dashboard.php') ?>" target="_blank">▶ Launch Command Centre</a></div>
+  <div><a class="demo-btn" href="<?= demo('index.php') ?>" target="_blank">▶ Launch Command Centre</a></div>
   <aside class="notes">SWITCH TO BROWSER as 'secretary'. Show the GIS map (colour-coded by status), click a pin. Show division-wise revenue bar + fund-requisition doughnut. "This is the screen the Secretary screen-shares to the Minister." Numbers here are pulled live from the same DB.</aside>
 </section>
 
