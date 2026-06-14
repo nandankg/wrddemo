@@ -12,6 +12,8 @@ function inr_full(float $n): string { return '₹' . number_format($n, 2); }
 /** Status → tailwind badge classes. */
 function badge(string $status): string {
     $map = [
+        'Verified'=>'bg-emerald-100 text-emerald-800 ring-emerald-600/20',
+        'Submitted'=>'bg-amber-100 text-amber-800 ring-amber-600/20',
         'Released'=>'bg-emerald-100 text-emerald-800 ring-emerald-600/20',
         'Paid'=>'bg-emerald-100 text-emerald-800 ring-emerald-600/20',
         'Approved'=>'bg-emerald-100 text-emerald-800 ring-emerald-600/20',

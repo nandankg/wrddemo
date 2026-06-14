@@ -14,6 +14,12 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
 
   if ($act==='submit' && $role==='JE') {
     $phys=(int)$_POST['physical_pct']; $fin=(int)$_POST['financial_pct']; $note=trim($_POST['note'] ?? '');
+    $dup=$pdo->prepare("SELECT id FROM progress_updates WHERE project_id=? AND status='Submitted'");
+    $dup->execute([$pid]);
+    if ($dup->fetch()) {
+      flash('A progress update for this project already awaits verification.');
+      header('Location: ?id='.$pid); exit;
+    }
     if (ppms_valid_pct($phys) && ppms_valid_pct($fin)) {
       $st=$pdo->prepare('INSERT INTO progress_updates (project_id,physical_pct,financial_pct,note,status,submitted_by) VALUES (?,?,?,?,?,?)');
       $st->execute([$pid,$phys,$fin,$note,'Submitted',$u['id']]);
@@ -54,7 +60,6 @@ if ($viewId):
   $p = $pdo->query("SELECT p.*,s.name scheme,d.name divn FROM projects p JOIN schemes s ON s.id=p.scheme_id JOIN divisions d ON d.id=p.division_id WHERE p.id=$viewId")->fetch();
   if (!$p) { echo '<p class="text-slate-500">Project not found.</p>'; require __DIR__.'/../../includes/footer.php'; exit; }
   $updates = $pdo->query("SELECT * FROM progress_updates WHERE project_id=$viewId ORDER BY id DESC")->fetchAll();
-  $logs = $pdo->query("SELECT * FROM workflow_log WHERE entity_type='project' AND entity_id=$viewId ORDER BY id DESC")->fetchAll();
   $pending = null; foreach ($updates as $up) if ($up['status']==='Submitted') { $pending=$up; break; }
 ?>
   <a href="projects.php" class="text-sm text-slate-500 hover:underline">← <?= is_hi()?'सभी परियोजनाएँ':'All projects' ?></a>

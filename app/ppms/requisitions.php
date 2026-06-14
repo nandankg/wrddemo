@@ -28,6 +28,17 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
   $fr = $pdo->query("SELECT * FROM fund_requisitions WHERE id=$id")->fetch();
   if ($fr) {
     $remarks = trim($_POST['remarks'] ?? '');
+    $s = $fr['status'];
+    // Guard: only the right role can act, and only at the right stage.
+    $permit = [
+      'submit'     => $s==='Draft'                && $role==='EE',
+      'accept'     => $s==='Pending Review'       && in_array($role,['SE','CE','EIC','EE'],true),
+      'finance_ok' => $s==='Under Finance Review' && $role==='FINANCE',
+      'release'    => $s==='Approved by Finance'  && in_array($role,['ADMIN','EIC'],true),
+      'reject'     => in_array($s,['Pending Review','Under Finance Review'],true) && in_array($role,['SE','CE','EIC','EE','FINANCE'],true),
+      'sendback'   => in_array($s,['Pending Review','Under Finance Review'],true) && in_array($role,['SE','CE','EIC','FINANCE'],true),
+    ][$act] ?? false;
+    if (!$permit) { flash('Action not permitted for your role at this stage.'); header('Location: ?id='.$id); exit; }
     switch ($act) {
       case 'submit': // Draft -> Pending Review
         $pdo->prepare("UPDATE fund_requisitions SET status='Pending Review',current_owner_role='SE' WHERE id=?")->execute([$id]);
