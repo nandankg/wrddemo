@@ -77,3 +77,64 @@ it('ppms_pending_actions returns review items for EE and verify items for AE', f
     assert_eq(1, count($fin));
     assert_eq('requisitions.php?id=8', $fin[0]['url']);
 });
+
+it('ppms_milestone_status flags overdue non-done items as Delayed', function () {
+    assert_eq('Done',       ppms_milestone_status('Done', '2026-05-01', '2026-04-01', '2026-06-14'));
+    assert_eq('Delayed',    ppms_milestone_status('In-Progress', null, '2026-04-01', '2026-06-14'));
+    assert_eq('Delayed',    ppms_milestone_status('Pending', null, '2026-01-01', '2026-06-14'));
+    assert_eq('In-Progress',ppms_milestone_status('In-Progress', null, '2026-12-01', '2026-06-14'));
+    assert_eq('Pending',    ppms_milestone_status('Pending', null, '2026-12-31', '2026-06-14'));
+});
+
+it('ppms_milestone_progress is weighted by Done milestones', function () {
+    $ms = [
+      ['weight'=>2,'status'=>'Done'],
+      ['weight'=>2,'status'=>'In-Progress'],
+      ['weight'=>1,'status'=>'Pending'],
+    ];
+    assert_eq(40, ppms_milestone_progress($ms));   // 2 / 5 = 40%
+    assert_eq(0,  ppms_milestone_progress([]));     // no divide-by-zero
+});
+
+it('ppms_bi_by_division aggregates per division, sorted by name', function () {
+    $projects = [
+      ['divn'=>'B','physical_pct'=>80,'financial_pct'=>70,'sanctioned_amount'=>'200','spent_amount'=>'100'],
+      ['divn'=>'A','physical_pct'=>60,'financial_pct'=>50,'sanctioned_amount'=>'100','spent_amount'=>'50'],
+      ['divn'=>'A','physical_pct'=>40,'financial_pct'=>30,'sanctioned_amount'=>'100','spent_amount'=>'30'],
+    ];
+    $by = ppms_bi_by_division($projects);
+    assert_eq('A', $by[0]['divn']);
+    assert_eq(2,   $by[0]['count']);
+    assert_eq(50,  $by[0]['phys']);          // (60+40)/2
+    assert_eq(40,  $by[0]['fin']);           // (50+30)/2
+    assert_eq(200.0, $by[0]['sanctioned']);
+    assert_eq(80.0,  $by[0]['spent']);
+    assert_eq(40,  $by[0]['utilisation']);   // 80/200
+    assert_eq('B', $by[1]['divn']);
+    assert_eq(50,  $by[1]['utilisation']);   // 100/200
+});
+
+it('ppms_report_dataset projects rows to columns by type', function () {
+    $rows = [['name'=>'P1','scheme'=>'S1','divn'=>'D1','status'=>'On Track',
+              'physical_pct'=>60,'financial_pct'=>55,'sanctioned_amount'=>'100','spent_amount'=>'50']];
+    $ds = ppms_report_dataset('project', $rows);
+    assert_eq(8, count($ds['columns']));
+    assert_eq('Project', $ds['columns'][0]);
+    assert_eq(['P1','S1','D1','On Track',60,55,'100','50'], $ds['rows'][0]);
+    // unknown type falls back to the project layout
+    assert_eq($ds['columns'], ppms_report_dataset('weird', $rows)['columns']);
+});
+
+it('ppms_next_run advances by frequency, defaulting to monthly', function () {
+    assert_eq('2026-06-15', ppms_next_run('Daily',     '2026-06-14'));
+    assert_eq('2026-06-21', ppms_next_run('Weekly',    '2026-06-14'));
+    assert_eq('2026-07-14', ppms_next_run('Monthly',   '2026-06-14'));
+    assert_eq('2026-09-14', ppms_next_run('Quarterly', '2026-06-14'));
+    assert_eq('2026-07-14', ppms_next_run('???',       '2026-06-14'));
+});
+
+it('ppms_otp_generate returns a 6-digit numeric string', function () {
+    $otp = ppms_otp_generate();
+    assert_eq(6, strlen($otp));
+    assert_true(ctype_digit($otp));
+});
