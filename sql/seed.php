@@ -90,6 +90,19 @@ function seed_demo(PDO $pdo): void {
         $ins->execute([$reqno,$r[0],$r[1],$r[2],$r[3],$fy,$r[4],$r[5],$r[6],$r[8],$r[9],$r[10],$r[11],$uid['EE'],$r[7]]);
     }
 
+    // ---- Project progress updates (JE submits → AE verifies) ----
+    $prog = [
+        // project_id, physical, financial, note, status, submitted_by, verified_by
+        [1, 75, 70, 'Spillway gates erection completed; RD 0-2 km lined.', 'Submitted', $uid['JE'], null],
+        [3, 45, 52, 'Desilting 60% done; embankment pitching in progress.', 'Submitted', $uid['JE'], null],
+        [2, 60, 57, 'Canal earthwork RD 0-8 km verified on site.', 'Verified', $uid['JE'], $uid['AE']],
+        [5, 30, 36, 'Mobilisation resumed; access road restored.', 'Rejected', $uid['JE'], $uid['AE']],
+    ];
+    $ins = $pdo->prepare('INSERT INTO progress_updates (project_id,physical_pct,financial_pct,note,status,submitted_by,verified_by,created_at) VALUES (?,?,?,?,?,?,?,?)');
+    foreach ($prog as $i=>$g) {
+        $ins->execute([$g[0],$g[1],$g[2],$g[3],$g[4],$g[5],$g[6], date('Y-m-d H:i:s', strtotime('-'.(3+$i*2).' days'))]);
+    }
+
     // ---- Contractors (with risk scores; one blacklisted) ----
     $contractors = [
         ['WRD/REG/3/0451','Narayan Constructions Pvt Ltd','नारायण कंस्ट्रक्शन्स','I','AABCN1234K','20ABCDE1234F1Z5','Ranchi','Active',18,'2027-03-31','2021-05-10'],

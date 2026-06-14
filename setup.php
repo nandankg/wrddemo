@@ -22,7 +22,7 @@ try {
 
     // 2. Drop existing demo tables (clean reset).
     $pdo->exec('SET FOREIGN_KEY_CHECKS=0');
-    foreach (['workflow_log','payments','bills','drawal_entries','consumers','allocations',
+    foreach (['progress_updates','workflow_log','payments','bills','drawal_entries','consumers','allocations',
               'contractor_apps','contractors','fund_requisitions','projects','schemes',
               'divisions','content','grievances','rti_applications','users'] as $t) {
         $pdo->exec("DROP TABLE IF EXISTS `$t`");
@@ -80,6 +80,18 @@ try {
         allocated_amount DECIMAL(16,2) NULL, release_ref VARCHAR(60) NULL,
         fund_code VARCHAR(40) NULL, release_date DATE NULL,
         created_by INT, current_owner_role VARCHAR(30),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    SQL);
+
+    $pdo->exec(<<<SQL
+    CREATE TABLE progress_updates (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        project_id INT,
+        physical_pct INT, financial_pct INT,
+        note VARCHAR(255),
+        status VARCHAR(20), -- Submitted, Verified, Rejected
+        submitted_by INT, verified_by INT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     SQL);
@@ -197,7 +209,7 @@ try {
         subject VARCHAR(240), status VARCHAR(30), filed_on DATE, fee_paid TINYINT
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     SQL);
-    ok('All 16 tables created (utf8mb4 / Hindi-ready).');
+    ok('All 17 tables created (utf8mb4 / Hindi-ready).');
 
     // 4. Seed ----------------------------------------------------------------
     require __DIR__ . '/sql/seed.php';   // populates using $pdo
