@@ -132,7 +132,7 @@ function seed_demo(PDO $pdo): void {
 
     // ---- Industrial water allocations (workflow stages) ----
     $alloc = [
-        ['WRD/IWA/2526/201','Tata Steel Ltd','River','Subarnarekha River',95.0,'Perennial',5,'East Singhbhum','Secretary','Approved','LIC/2526/0044','20SUBAR3456J1Z7',4750000,'2025-04-15'],
+        ['WRD/IWA/2526/201','Tata Steel Ltd','River','Subarnarekha River',95.0,'Perennial',5,'East Singhbhum','SECRETARY','Approved','LIC/2526/0044','20SUBAR3456J1Z7',4750000,'2025-04-15'],
         ['WRD/IWA/2526/202','Bokaro Steel Plant (SAIL)','Reservoir','Tenughat Reservoir',120.0,'Perennial',3,'Bokaro','EIC','Under Review',null,'20DAMOD7890K1Z4',6000000,'2025-05-02'],
         ['WRD/IWA/2526/203','Hindalco Industries','River','Damodar River',60.0,'Seasonal',2,'Dhanbad','CE','Under Review',null,'20JHARK5678G1Z2',3000000,'2025-05-18'],
         ['WRD/IWA/2526/204','Usha Martin Ltd','Canal','Swarnrekha Canal',35.0,'Perennial',5,'Ranchi','SE','Under Review',null,'20RANCH6789M1Z8',1750000,'2025-05-28'],
@@ -141,6 +141,8 @@ function seed_demo(PDO $pdo): void {
     ];
     $ins = $pdo->prepare('INSERT INTO allocations (app_no,applicant,source,source_name,quantity_mld,season,division_id,district,stage,status,license_no,gst,annual_fee,applied_on) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
     foreach ($alloc as $a) $ins->execute($a);
+    // Link the demo applicant login to its allocation (portal scoping, consumer-style).
+    $pdo->prepare("UPDATE allocations SET login_user='consumer' WHERE app_no=?")->execute(['WRD/IWA/2526/201']);
 
     // ---- E-Tariff consumers ----
     $consumers = [

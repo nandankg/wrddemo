@@ -125,7 +125,8 @@ try {
         division_id INT, district VARCHAR(80),
         stage VARCHAR(30), status VARCHAR(30),
         license_no VARCHAR(40) NULL, gst VARCHAR(20),
-        annual_fee DECIMAL(14,2), applied_on DATE
+        annual_fee DECIMAL(14,2), applied_on DATE,
+        login_user VARCHAR(60) NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     SQL);
 
