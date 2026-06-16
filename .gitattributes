@@ -1,0 +1,3 @@
+# Vendored third-party assets and map data — store verbatim, no EOL conversion.
+assets/vendor/** -text
+assets/geo/** -text

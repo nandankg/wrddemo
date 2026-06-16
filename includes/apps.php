@@ -52,8 +52,10 @@ function wrd_apps(): array {
             'roles' => ['CONSUMER','AE','EE','SE','CE','EIC','SECRETARY'],
             'nav' => [
                 ['key'=>'dashboard','label'=>'Allocation Desk','url'=>'app/allocation/index.php','icon'=>'▤'],
+                ['key'=>'map','label'=>'Source Map (GIS)','url'=>'app/allocation/map.php','icon'=>'🗺️'],
                 ['key'=>'applications','label'=>'Applications','url'=>'app/allocation/applications.php','icon'=>'📋','roles'=>['AE','EE','SE','CE','EIC','SECRETARY']],
                 ['key'=>'licences','label'=>'Licences','url'=>'app/allocation/licences.php','icon'=>'📜','roles'=>['AE','EE','SE','CE','EIC','SECRETARY']],
+                ['key'=>'analytics','label'=>'Water Analytics','url'=>'app/allocation/analytics.php','icon'=>'📈','roles'=>['AE','EE','SE','CE','EIC','SECRETARY']],
             ],
         ],
         'etariff' => [

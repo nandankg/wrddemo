@@ -48,3 +48,63 @@ it('allocation_pending_actions returns this officer stage work, none for applica
     assert_eq(0, count(allocation_pending_actions('EE', $rows)));
     assert_eq(0, count(allocation_pending_actions('CONSUMER', $rows)));
 });
+
+/* ---- Phase 1: GIS / AI assist pure logic ---- */
+
+it('allocation_utilisation and headroom derive from capacity', function () {
+    $s = ['total_capacity_mld'=>800, 'allocated_mld'=>640];
+    assert_eq(80.0, allocation_utilisation($s));
+    assert_eq(160.0, allocation_headroom($s));
+    assert_eq(0.0, allocation_utilisation(['total_capacity_mld'=>0,'allocated_mld'=>5])); // no divide-by-zero
+    assert_eq(0.0, allocation_headroom(['total_capacity_mld'=>10,'allocated_mld'=>50]));  // never negative
+});
+
+it('allocation_util_tier bands available/moderate/critical', function () {
+    assert_eq('available', allocation_util_tier(40)['key']);
+    assert_eq('moderate',  allocation_util_tier(70)['key']);
+    assert_eq('moderate',  allocation_util_tier(90)['key']);
+    assert_eq('critical',  allocation_util_tier(90.1)['key']);
+});
+
+it('allocation_distance_km is ~0 for identical points and positive otherwise', function () {
+    assert_eq(0.0, allocation_distance_km(23.4, 85.5, 23.4, 85.5));
+    assert_true(allocation_distance_km(23.4, 85.5, 22.8, 86.2) > 50.0);
+});
+
+it('allocation_recommend_source prefers a source that meets the demand', function () {
+    $sources = [
+        ['name'=>'Tight Dam','district'=>'X','status'=>'Active','season'=>'Perennial','total_capacity_mld'=>100,'allocated_mld'=>95,'lat'=>23.0,'lng'=>85.0],
+        ['name'=>'Big Reservoir','district'=>'Y','status'=>'Active','season'=>'Perennial','total_capacity_mld'=>800,'allocated_mld'=>200,'lat'=>23.7,'lng'=>85.8],
+    ];
+    $rec = allocation_recommend_source('Z', 50.0, $sources);
+    assert_eq('Big Reservoir', $rec['name']);
+    assert_true($rec['meets_quantity']);
+});
+
+it('allocation_recommend_source skips restricted sources and computes distance from ref', function () {
+    $sources = [
+        ['name'=>'Restricted','district'=>'X','status'=>'Restricted','season'=>'Perennial','total_capacity_mld'=>900,'allocated_mld'=>10,'lat'=>23.0,'lng'=>85.0],
+        ['name'=>'Near Active','district'=>'X','status'=>'Active','season'=>'Perennial','total_capacity_mld'=>300,'allocated_mld'=>50,'lat'=>23.41,'lng'=>85.53],
+    ];
+    $rec = allocation_recommend_source('X', 20.0, $sources, ['lat'=>23.41,'lng'=>85.53]);
+    assert_eq('Near Active', $rec['name']);
+    assert_eq(0.0, $rec['distance_km']);
+});
+
+it('allocation_risk grades documents, headroom and season', function () {
+    $src = ['total_capacity_mld'=>800,'allocated_mld'=>200,'status'=>'Active','season'=>'Perennial'];
+    assert_eq('LOW', allocation_risk(['quantity_mld'=>50,'season'=>'Perennial','docs_total'=>4,'docs_present'=>4], $src)['level']);
+    // demand exceeds headroom -> HIGH
+    $tight = ['total_capacity_mld'=>100,'allocated_mld'=>95,'status'=>'Active','season'=>'Perennial'];
+    assert_eq('HIGH', allocation_risk(['quantity_mld'=>50,'docs_total'=>4,'docs_present'=>4], $tight)['level']);
+    // missing docs alone -> MEDIUM
+    assert_eq('MEDIUM', allocation_risk(['quantity_mld'=>10,'docs_total'=>4,'docs_present'=>3], $src)['level']);
+});
+
+it('allocation_exec_summary names applicant, source and risk verdict', function () {
+    $src = ['name'=>'Tenughat Reservoir','total_capacity_mld'=>820,'allocated_mld'=>640,'status'=>'Active','season'=>'Perennial'];
+    $sum = allocation_exec_summary(['applicant'=>'ABC Steel','quantity_mld'=>50,'season'=>'Perennial','docs_total'=>4,'docs_present'=>4], $src);
+    assert_true(str_contains($sum, 'ABC Steel'));
+    assert_true(str_contains($sum, 'Tenughat Reservoir'));
+    assert_true(str_contains($sum, 'recommended for approval'));
+});

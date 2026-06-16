@@ -188,6 +188,25 @@ function seed_demo(PDO $pdo): void {
     // Link the demo applicant login to its allocation (portal scoping, consumer-style).
     $pdo->prepare("UPDATE allocations SET login_user='consumer' WHERE app_no=?")->execute(['WRD/IWA/2526/201']);
 
+    // ---- Water sources (GIS pins + AI recommendation + analytics backbone) ----
+    // [name, name_hi, type, district, lat, lng, total_capacity_mld, allocated_mld, season, status]
+    $sources = [
+        ['Tenughat Reservoir','तेनुघाट जलाशय','Reservoir','Bokaro',23.7290,85.8060,820.0,640.0,'Perennial','Active'],
+        ['Getalsud Dam','गेतलसूद बांध','Dam','Ranchi',23.4180,85.5300,300.0,246.0,'Perennial','Active'],
+        ['Maithon Dam','मैथन बांध','Dam','Dhanbad',23.7780,86.8150,640.0,410.0,'Perennial','Active'],
+        ['Panchet Dam','पंचेत बांध','Dam','Dhanbad',23.6650,86.7480,560.0,300.0,'Perennial','Active'],
+        ['Konar Reservoir','कोनार जलाशय','Reservoir','Hazaribagh',23.9700,85.6400,280.0,205.0,'Perennial','Active'],
+        ['Tilaiya Dam','तिलैया बांध','Dam','Koderma',24.3200,85.5200,180.0,96.0,'Perennial','Active'],
+        ['Subarnarekha River','स्वर्णरेखा नदी','River','East Singhbhum',22.8000,86.2000,900.0,560.0,'Perennial','Active'],
+        ['Damodar River','दामोदर नदी','River','Bokaro',23.7900,86.1500,1100.0,980.0,'Perennial','Restricted'],
+        ['Chandil Dam','चांडिल बांध','Dam','Saraikela',22.9600,86.0500,420.0,250.0,'Perennial','Active'],
+        ['Massanjore Dam','मसनजोर बांध','Dam','Dumka',24.1300,87.3000,240.0,120.0,'Seasonal','Active'],
+        ['Swarnrekha Canal','स्वर्णरेखा नहर','Canal','Ranchi',23.3500,85.3300,160.0,138.0,'Seasonal','Active'],
+        ['Hatia Reservoir','हटिया जलाशय','Reservoir','Ranchi',23.3100,85.2900,120.0,72.0,'Perennial','Active'],
+    ];
+    $ins = $pdo->prepare('INSERT INTO water_sources (name,name_hi,type,district,lat,lng,total_capacity_mld,allocated_mld,season,status) VALUES (?,?,?,?,?,?,?,?,?,?)');
+    foreach ($sources as $s) $ins->execute($s);
+
     // ---- E-Tariff consumers ----
     $consumers = [
         ['WRD-CON-1001','Tata Steel Ltd','टाटा स्टील लि.','Industrial Units',5,'Subarnarekha River',95.0,'20SUBAR3456J1Z7','AAECS3456N','SO/2024/441','2027-03-31','consumer'],
