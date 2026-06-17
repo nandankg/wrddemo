@@ -203,3 +203,48 @@ function allocation_exec_summary(array $app, ?array $source = null, ?array $risk
             : ' Risk is assessed as HIGH; the application requires detailed technical review before any sanction.');
     return $s;
 }
+
+/* ===========================================================================
+ * Phase 2 — payment / QR licence / renewal / inspection pure logic.
+ * =========================================================================== */
+
+/** Deterministic JE-GRASS challan number for an allocation id. */
+function allocation_challan_no(int $id): string {
+    return sprintf('JEGRAS/2526/%04d', $id);
+}
+
+/** Has the licence fee been paid? Safe on missing key. */
+function allocation_fee_paid(array $a): bool {
+    return ($a['fee_status'] ?? 'Unpaid') === 'Paid';
+}
+
+/**
+ * Absolute URL (scheme://host/base/path) for off-device use such as a scannable QR.
+ * Falls back to a relative URL when no host is known (CLI/tests).
+ */
+function allocation_abs_url(string $appRelative): string {
+    $rel = function_exists('base_url') ? base_url($appRelative) : '/' . ltrim($appRelative, '/');
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    if ($host === '') return $rel;
+    if (preg_match('#^https?://#', $rel)) return $rel;   // already absolute
+    $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || ($_SERVER['SERVER_PORT'] ?? '') == 443;
+    return ($https ? 'https' : 'http') . '://' . $host . '/' . ltrim($rel, '/');
+}
+
+/** Short, stable simulated digital-signature id from licence no + token. */
+function allocation_signature_id(string $licenceNo, string $token): string {
+    return strtoupper(substr(hash('sha256', $licenceNo . '|' . $token), 0, 12));
+}
+
+/** Whole days from $today to $validUpto (negative if expired). */
+function allocation_days_to_expiry(string $validUpto, string $today): int {
+    $a = strtotime($validUpto); $b = strtotime($today);
+    if ($a === false || $b === false) return PHP_INT_MAX;
+    return (int)floor(($a - $b) / 86400);
+}
+
+/** Is the licence within the renewal window (or already expired)? */
+function allocation_is_due_renewal(string $validUpto, string $today, int $window = 90): bool {
+    if (trim($validUpto) === '') return false;
+    return allocation_days_to_expiry($validUpto, $today) <= $window;
+}

@@ -108,3 +108,41 @@ it('allocation_exec_summary names applicant, source and risk verdict', function 
     assert_true(str_contains($sum, 'Tenughat Reservoir'));
     assert_true(str_contains($sum, 'recommended for approval'));
 });
+
+/* ---- Phase 2: payment / QR licence / renewal pure logic ---- */
+
+it('allocation_challan_no is a stable padded JE-GRASS reference', function () {
+    assert_eq('JEGRAS/2526/0044', allocation_challan_no(44));
+    assert_eq('JEGRAS/2526/0007', allocation_challan_no(7));
+});
+
+it('allocation_fee_paid reads fee_status safely', function () {
+    assert_true(allocation_fee_paid(['fee_status'=>'Paid']));
+    assert_eq(false, allocation_fee_paid(['fee_status'=>'Unpaid']));
+    assert_eq(false, allocation_fee_paid([]));   // missing key defaults to unpaid
+});
+
+it('allocation_signature_id is deterministic, 12 hex uppercase chars', function () {
+    $a = allocation_signature_id('LIC/2526/0044','tok123');
+    assert_eq($a, allocation_signature_id('LIC/2526/0044','tok123'));   // stable
+    assert_true($a !== allocation_signature_id('LIC/2526/0044','tok124')); // token-sensitive
+    assert_eq(1, preg_match('/^[0-9A-F]{12}$/', $a));
+});
+
+it('allocation_days_to_expiry counts whole days and goes negative when expired', function () {
+    assert_eq(10, allocation_days_to_expiry('2026-01-11','2026-01-01'));
+    assert_eq(0,  allocation_days_to_expiry('2026-01-01','2026-01-01'));
+    assert_true(allocation_days_to_expiry('2025-12-20','2026-01-01') < 0);
+});
+
+it('allocation_is_due_renewal flags inside the 90-day window or expired', function () {
+    assert_true(allocation_is_due_renewal('2026-03-01','2026-01-01'));   // ~59 days
+    assert_true(allocation_is_due_renewal('2025-12-01','2026-01-01'));   // expired
+    assert_eq(false, allocation_is_due_renewal('2027-01-01','2026-01-01')); // far off
+    assert_eq(false, allocation_is_due_renewal('','2026-01-01'));        // no validity
+});
+
+it('allocation_abs_url falls back to a root-relative path without a host', function () {
+    // In the CLI test harness there is no HTTP_HOST and no base_url(), so it stays relative.
+    assert_eq('/app/allocation/licence_verify.php?token=x', allocation_abs_url('app/allocation/licence_verify.php?token=x'));
+});

@@ -182,11 +182,26 @@ function seed_demo(PDO $pdo): void {
         ['WRD/IWA/2526/204','Usha Martin Ltd','Canal','Swarnrekha Canal',35.0,'Perennial',5,'Ranchi','SE','Under Review',null,'20RANCH6789M1Z8',1750000,'2025-05-28'],
         ['WRD/IWA/2526/205','Jindal Steel & Power','Reservoir','Konar Reservoir',80.0,'Perennial',4,'Hazaribagh','AE','New',', ','20KOELE9012H1Z9',4000000,'2025-06-03'],
         ['WRD/IWA/2526/206','Adhunik Power','River','Sone River',40.0,'Seasonal',6,'Palamu','EE','Under Review',null,'20SANTH0123N1Z6',2000000,'2025-06-05'],
+        // Older approved licence nearing expiry — drives the renewal demo for the consumer login.
+        ['WRD/IWA/2122/118','Tata Steel Ltd','River','Subarnarekha River',75.0,'Perennial',5,'East Singhbhum','SECRETARY','Approved','LIC/2122/0118','20SUBAR3456J1Z7',3750000,'2021-08-20'],
     ];
     $ins = $pdo->prepare('INSERT INTO allocations (app_no,applicant,source,source_name,quantity_mld,season,division_id,district,stage,status,license_no,gst,annual_fee,applied_on) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
     foreach ($alloc as $a) $ins->execute($a);
     // Link the demo applicant login to its allocation (portal scoping, consumer-style).
     $pdo->prepare("UPDATE allocations SET login_user='consumer' WHERE app_no=?")->execute(['WRD/IWA/2526/201']);
+    // Back-fill the approved licence: paid fee, QR token, 5-year validity (Phase 2).
+    $pdo->prepare("UPDATE allocations SET qr_token=?, fee_status='Paid', challan_no=?, paid_on='2025-04-18 11:24:00', valid_upto='2030-04-17' WHERE app_no=?")
+        ->execute([bin2hex(random_bytes(8)), 'JEGRAS/2526/0044', 'WRD/IWA/2526/201']);
+    // Near-expiry approved licence (valid within the 90-day renewal window) owned by the consumer login.
+    $pdo->prepare("UPDATE allocations SET login_user='consumer', qr_token=?, fee_status='Paid', challan_no='JEGRAS/2122/0118', paid_on='2021-08-22 10:10:00', valid_upto=? WHERE app_no=?")
+        ->execute([bin2hex(random_bytes(8)), date('Y-m-d', strtotime('+55 days')), 'WRD/IWA/2122/118']);
+    $aid201 = (int)$pdo->query("SELECT id FROM allocations WHERE app_no='WRD/IWA/2526/201'")->fetchColumn();
+    // Treasury payment record for the approved licence (reuses payments; bill_id carries the allocation id).
+    $pdo->prepare("INSERT INTO payments (txn_ref,bill_id,source_module,consumer_id,division_id,amount,channel,credited_account,status,paid_on) VALUES (?,?,?,?,?,?,?,?,?,?)")
+        ->execute(['JEGRAS-2526-44A1', $aid201, 'allocation', null, 5, 4750000, 'JE-GRASS', '34128009912', 'Success', '2025-04-18 11:24:00']);
+    // One seeded field inspection so the enforcement log is non-empty.
+    $pdo->prepare("INSERT INTO inspections (allocation_id,app_no,inspector,finding,action,notes,inspected_on) VALUES (?,?,?,?,?,?,?)")
+        ->execute([$aid201, 'WRD/IWA/2526/201', 'Sunita Oraon (AE)', 'Compliant', 'None', 'Flow meter sealed and functional; drawal within sanctioned 95 MLD.', '2025-09-12']);
 
     // ---- Water sources (GIS pins + AI recommendation + analytics backbone) ----
     // [name, name_hi, type, district, lat, lng, total_capacity_mld, allocated_mld, season, status]

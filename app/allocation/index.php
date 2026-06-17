@@ -114,7 +114,14 @@ $preSourceId=(int)($_GET['source_id'] ?? 0);   // arriving from the GIS picker
         <?php endforeach; ?>
       </div>
       <?php if($a['status']==='Approved' && $a['license_no']): ?>
-        <a href="<?= base_url('app/allocation/licence.php') ?>?id=<?= $a['id'] ?>" target="_blank" class="inline-block mt-3 text-sm font-semibold" style="color:<?= e($APP['accent']) ?>">📜 <?= is_hi()?'लाइसेंस डाउनलोड करें':'Download Licence' ?> (<?= e($a['license_no']) ?>) →</a>
+        <div class="flex flex-wrap items-center gap-4 mt-3">
+          <a href="<?= base_url('app/allocation/licence.php') ?>?id=<?= $a['id'] ?>" target="_blank" class="text-sm font-semibold" style="color:<?= e($APP['accent']) ?>">📜 <?= is_hi()?'लाइसेंस डाउनलोड करें':'Download Licence' ?> (<?= e($a['license_no']) ?>) →</a>
+          <?php if(!allocation_fee_paid($a)): ?>
+            <a href="<?= base_url('app/allocation/payment.php') ?>?id=<?= $a['id'] ?>" class="text-sm font-semibold text-amber-700">🏦 <?= is_hi()?'लाइसेंस शुल्क भुगतान करें':'Pay licence fee' ?> →</a>
+          <?php else: ?>
+            <span class="text-xs font-bold uppercase bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full"><?= is_hi()?'शुल्क भुगतान':'Fee Paid' ?></span>
+          <?php endif; ?>
+        </div>
       <?php endif; ?>
     </div>
   <?php endforeach; ?>
