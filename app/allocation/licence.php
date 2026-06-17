@@ -6,9 +6,15 @@ allocation_require_login();
 $pdo=db(); $id=(int)($_GET['id']??0);
 $a=$pdo->query("SELECT a.*,d.name divn,d.circle FROM allocations a JOIN divisions d ON d.id=a.division_id WHERE a.id=$id AND a.status='Approved'")->fetch();
 if(!$a){ http_response_code(404); exit('Licence not available.'); }
+// Ensure a public verification token exists (legacy approvals may predate Phase 2).
+if(empty($a['qr_token'])){ $a['qr_token']=bin2hex(random_bytes(8)); $pdo->prepare("UPDATE allocations SET qr_token=? WHERE id=?")->execute([$a['qr_token'],$id]); }
+$verifyUrl=allocation_abs_url('app/allocation/licence_verify.php?token='.$a['qr_token']);
+$sigId=allocation_signature_id((string)$a['license_no'],(string)$a['qr_token']);
+$validUpto=$a['valid_upto']?:date('Y-m-d',strtotime($a['applied_on'].' +5 years'));
 ?><!doctype html><html lang="en"><head><meta charset="utf-8"><title>Water Allocation Licence · <?= e($a['license_no']) ?></title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Mukta:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="<?= base_url('assets/vendor/qrcodejs/qrcode.min.js') ?>"></script>
 <style>body{font-family:'Mukta',sans-serif}.d{font-family:'Fraunces',serif}@media print{.noprint{display:none}}</style></head>
 <body class="bg-slate-100 py-8">
 <div class="max-w-3xl mx-auto mb-4 noprint flex justify-between">
@@ -36,23 +42,34 @@ if(!$a){ http_response_code(404); exit('Licence not available.'); }
         <tr><td class="bg-slate-50 px-4 py-2.5 font-medium text-slate-600 w-1/2">Source</td><td class="px-4 py-2.5"><?= e($a['source']) ?> — <?= e($a['source_name']) ?></td></tr>
         <tr><td class="bg-slate-50 px-4 py-2.5 font-medium text-slate-600">Allocated Quantity</td><td class="px-4 py-2.5 font-semibold"><?= (float)$a['quantity_mld'] ?> MLD (<?= e($a['season']) ?>)</td></tr>
         <tr><td class="bg-slate-50 px-4 py-2.5 font-medium text-slate-600">Division / Circle</td><td class="px-4 py-2.5"><?= e($a['divn']) ?> · <?= e($a['circle']) ?></td></tr>
-        <tr><td class="bg-slate-50 px-4 py-2.5 font-medium text-slate-600">Annual Fee</td><td class="px-4 py-2.5 font-semibold text-emerald-700"><?= inr_full((float)$a['annual_fee']) ?></td></tr>
+        <tr><td class="bg-slate-50 px-4 py-2.5 font-medium text-slate-600">Validity</td><td class="px-4 py-2.5"><?= date('d M Y',strtotime($a['applied_on'])) ?> — <span class="font-semibold"><?= date('d M Y',strtotime($validUpto)) ?></span> (5 years)</td></tr>
+        <tr><td class="bg-slate-50 px-4 py-2.5 font-medium text-slate-600">Annual Fee</td><td class="px-4 py-2.5 font-semibold text-emerald-700"><?= inr_full((float)$a['annual_fee']) ?>
+          <?php if(allocation_fee_paid($a)): ?><span class="ml-2 text-[10px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">Fee Paid</span><?php else: ?><span class="ml-2 text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">Fee Due</span><?php endif; ?></td></tr>
         <tr><td class="bg-slate-50 px-4 py-2.5 font-medium text-slate-600">GSTIN</td><td class="px-4 py-2.5"><?= e($a['gst']) ?></td></tr>
       </tbody>
     </table>
     <div class="flex items-end justify-between mt-12">
       <div class="text-center">
-        <div class="w-28 h-28 bg-white border border-slate-300 grid place-items-center">
-          <svg width="92" height="92" viewBox="0 0 29 29" shape-rendering="crispEdges"><?php
-            mt_srand(crc32((string)$a['license_no'])); echo '<rect width="29" height="29" fill="#fff"/>';
-            for($y=0;$y<29;$y++)for($x=0;$x<29;$x++){ if(mt_rand(0,2)===0) echo '<rect x="'.$x.'" y="'.$y.'" width="1" height="1" fill="#06314a"/>'; }
-            foreach([[0,0],[22,0],[0,22]] as $cc){ echo '<rect x="'.$cc[0].'" y="'.$cc[1].'" width="7" height="7" fill="none" stroke="#06314a"/><rect x="'.($cc[0]+2).'" y="'.($cc[1]+2).'" width="3" height="3" fill="#06314a"/>'; }
-          ?></svg>
-        </div>
-        <p class="text-[10px] text-slate-400 mt-1">Scan to verify · <?= e($a['license_no']) ?></p>
+        <div id="qrcode" class="w-28 h-28 bg-white border border-slate-300 grid place-items-center p-1.5"></div>
+        <p class="text-[10px] text-slate-400 mt-1">📱 Scan to verify · <?= e($a['license_no']) ?></p>
       </div>
-      <div class="text-center"><div class="h-12"></div><div class="border-t border-slate-400 pt-1 px-6 text-sm font-semibold text-[#06314a]">Secretary</div><div class="text-xs text-slate-500">WRD, Jharkhand</div></div>
+      <div class="text-center">
+        <div class="inline-block text-left bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-2">
+          <div class="flex items-center gap-1.5 text-emerald-700 font-semibold text-sm">🔒 Digitally Signed</div>
+          <div class="text-xs text-slate-600 mt-0.5">Anjali Verma, IAS — Secretary, WRD</div>
+          <div class="text-[10px] text-slate-400 mt-1 font-mono">Sig ID <?= e($sigId) ?></div>
+          <div class="text-[10px] text-slate-400 font-mono"><?= date('d M Y H:i') ?> IST</div>
+        </div>
+        <div class="border-t border-slate-400 pt-1 mt-2 px-6 text-sm font-semibold text-[#06314a]">Secretary</div>
+        <div class="text-xs text-slate-500">WRD, Jharkhand</div>
+      </div>
     </div>
   </div>
 </div>
+<script>
+  new QRCode(document.getElementById("qrcode"), {
+    text: <?= json_encode($verifyUrl) ?>, width: 104, height: 104,
+    colorDark: "#06314a", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M
+  });
+</script>
 </body></html>

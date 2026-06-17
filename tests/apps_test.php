@@ -44,6 +44,6 @@ it('contractor nav exposes dashboard, applications, registry, verify in order', 
 it('allocation roles include the full AE..SECRETARY chain plus applicant', function () {
     assert_eq(['CONSUMER','AE','EE','SE','CE','EIC','SECRETARY'], wrd_app('allocation')['roles']);
 });
-it('allocation nav exposes dashboard, applications, licences in order', function () {
-    assert_eq(['dashboard','applications','licences'], array_column(wrd_app('allocation')['nav'], 'key'));
+it('allocation nav exposes the full Phase 1+2 set in order', function () {
+    assert_eq(['dashboard','map','applications','renewals','licences','inspections','analytics'], array_column(wrd_app('allocation')['nav'], 'key'));
 });

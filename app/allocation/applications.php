@@ -27,7 +27,9 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
       flash("Forwarded to $next.");
     } elseif ($act==='approve') {
       $lic='LIC/2526/'.str_pad((string)$id,4,'0',STR_PAD_LEFT);
-      $pdo->prepare("UPDATE allocations SET status='Approved',license_no=? WHERE id=?")->execute([$lic,$id]);
+      $token=bin2hex(random_bytes(8));               // public QR verification token
+      $valid=date('Y-m-d', strtotime('+5 years'));    // 5-year licence validity
+      $pdo->prepare("UPDATE allocations SET status='Approved',license_no=?,qr_token=?,valid_upto=? WHERE id=?")->execute([$lic,$token,$valid,$id]);
       add_audit($pdo,'allocation',$id,'Approved & licence generated','SECRETARY','Issued',$actor,'Licence '.$lic);
       flash("Approved. Licence $lic generated.");
     } elseif ($act==='hold') {

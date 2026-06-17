@@ -22,7 +22,7 @@ try {
 
     // 2. Drop existing demo tables (clean reset).
     $pdo->exec('SET FOREIGN_KEY_CHECKS=0');
-    foreach (['scheduled_reports','notifications','milestones','progress_updates','workflow_log','payments','bills','drawal_entries','consumers','allocations',
+    foreach (['scheduled_reports','notifications','milestones','progress_updates','workflow_log','payments','bills','drawal_entries','consumers','inspections','water_sources','allocations',
               'contractor_apps','contractors','fund_requisitions','projects','schemes',
               'divisions','content','grievances','rti_applications','users'] as $t) {
         $pdo->exec("DROP TABLE IF EXISTS `$t`");
@@ -165,7 +165,36 @@ try {
         stage VARCHAR(30), status VARCHAR(30),
         license_no VARCHAR(40) NULL, gst VARCHAR(20),
         annual_fee DECIMAL(14,2), applied_on DATE,
-        login_user VARCHAR(60) NULL
+        login_user VARCHAR(60) NULL,
+        qr_token VARCHAR(24) NULL, fee_status VARCHAR(20) DEFAULT 'Unpaid',
+        challan_no VARCHAR(40) NULL, paid_on DATETIME NULL,
+        valid_upto DATE NULL, renewed_from INT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    SQL);
+
+    $pdo->exec(<<<SQL
+    CREATE TABLE water_sources (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(120), name_hi VARCHAR(160),
+        type VARCHAR(30),                 -- Reservoir | Dam | River | Canal
+        district VARCHAR(80),
+        lat DECIMAL(9,6), lng DECIMAL(9,6),
+        total_capacity_mld DECIMAL(10,2),
+        allocated_mld DECIMAL(10,2),
+        season VARCHAR(20),               -- Perennial | Seasonal
+        status VARCHAR(20)                -- Active | Restricted
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    SQL);
+
+    $pdo->exec(<<<SQL
+    CREATE TABLE inspections (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        allocation_id INT, app_no VARCHAR(40),
+        inspector VARCHAR(120),
+        finding VARCHAR(40),   -- Compliant | Minor Violation | Major Violation
+        action  VARCHAR(40),   -- None | Show-Cause | Penalty
+        notes   TEXT,
+        inspected_on DATE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     SQL);
 
@@ -250,12 +279,12 @@ try {
         subject VARCHAR(240), status VARCHAR(30), filed_on DATE, fee_paid TINYINT
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     SQL);
-    ok('All 20 tables created (utf8mb4 / Hindi-ready).');
+    ok('All 22 tables created (utf8mb4 / Hindi-ready).');
 
     // 4. Seed ----------------------------------------------------------------
     require __DIR__ . '/sql/seed.php';   // populates using $pdo
     seed_demo($pdo);
-    ok('Seed data inserted: divisions, schemes, geotagged projects, fund requisitions, consumers, bills, payments, contractors, allocations, grievances, RTI, and bilingual CMS content.');
+    ok('Seed data inserted: divisions, schemes, geotagged projects, fund requisitions, consumers, bills, payments, contractors, allocations, water sources, inspections, grievances, RTI, and bilingual CMS content.');
 
 } catch (Throwable $e) {
     info('ERROR: ' . htmlspecialchars($e->getMessage()));
