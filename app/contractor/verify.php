@@ -2,9 +2,11 @@
 require_once __DIR__ . '/../../config/db.php';
 require_once __DIR__ . '/../../includes/i18n.php';
 require_once __DIR__ . '/../../includes/functions.php';
-$token=$_GET['token']??'';
+$token=$_GET['token']??''; $reg=trim($_GET['reg']??'');
 $c=null;
 if($token){ $st=db()->prepare("SELECT * FROM contractors WHERE qr_token=?"); $st->execute([$token]); $c=$st->fetch(); }
+elseif($reg){ $st=db()->prepare("SELECT * FROM contractors WHERE reg_no=?"); $st->execute([$reg]); $c=$st->fetch(); }
+$searched = $token!=='' || $reg!=='';
 ?><!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Certificate Verification · WRD Jharkhand</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Mukta:wght@400;500;600&display=swap" rel="stylesheet">
@@ -16,6 +18,13 @@ if($token){ $st=db()->prepare("SELECT * FROM contractors WHERE qr_token=?"); $st
     <div><div class="d font-semibold">Certificate Verification</div><div class="text-xs text-cyan-100">WRD, Government of Jharkhand</div></div>
   </div>
   <div class="p-7 text-center">
+    <?php if(!$searched): ?>
+      <form method="get" class="text-left">
+        <label class="text-sm font-medium text-slate-700"><?= 'Contractor Registration No' ?></label>
+        <input name="reg" placeholder="WRD/REG/3/0451" class="mt-1 w-full border border-slate-300 rounded-xl px-3 py-2.5">
+        <button class="mt-3 w-full bg-[#06314a] text-white rounded-xl py-2.5 font-semibold">🔍 Verify Contractor</button>
+      </form>
+    <?php else: ?>
     <?php if($c && $c['status']!=='Blacklisted'): ?>
       <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 grid place-items-center text-3xl mx-auto">✓</div>
       <h1 class="d text-xl font-semibold text-[#06314a] mt-3">Authentic & Valid</h1>
@@ -36,6 +45,7 @@ if($token){ $st=db()->prepare("SELECT * FROM contractors WHERE qr_token=?"); $st
       <div class="w-16 h-16 rounded-full bg-slate-100 text-slate-400 grid place-items-center text-3xl mx-auto">?</div>
       <h1 class="d text-xl font-semibold text-slate-700 mt-3">Not Found</h1>
       <p class="text-sm text-slate-500 mt-2">No certificate matches this code. It may be invalid or revoked.</p>
+    <?php endif; ?>
     <?php endif; ?>
     <p class="text-[11px] text-slate-400 mt-6">Verified in real time against the WRD Integrated Digital Backbone.</p>
   </div>
