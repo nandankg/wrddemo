@@ -197,7 +197,7 @@ require __DIR__ . '/../../includes/header.php';
     <!-- Step 6: Documents (drag & drop) + E-GRAS fee -->
     <div class="wiz-pane hidden" data-pane="5">
       <div class="border-2 border-dashed border-slate-300 rounded-xl p-5 text-center text-sm text-slate-500 mb-3">⬆ <?= is_hi()?'दस्तावेज़ यहाँ खींचें और छोड़ें (डेमो)':'Drag & drop documents here (demo)' ?></div>
-      <?php foreach([['Photograph','फोटोग्राफ'],['Signature','हस्ताक्षर'],['PAN Card','पैन कार्ड'],['Incorporation Certificate','निगमन प्रमाणपत्र'],['GST Certificate','जीएसटी प्रमाणपत्र'],['Balance Sheet','बैलेंस शीट'],['CA Certificate','सीए प्रमाणपत्र']] as $doc): $v=contractor_doc_verify($doc[0],0); ?>
+      <?php foreach([['Photograph','फोटोग्राफ'],['Signature','हस्ताक्षर'],['PAN Card','पैन कार्ड'],['Incorporation Certificate','निगमन प्रमाणपत्र'],['GST Certificate','जीएसटी प्रमाणपत्र'],['Balance Sheet','बैलेंस शीट'],['CA Certificate','सीए प्रमाणपत्र']] as $doc): $v=contractor_doc_verify($doc[0],15); /* fixed demo seed: surfaces one representative document issue per Screen 4 */ ?>
         <label class="flex items-center justify-between border border-slate-200 rounded-lg px-3 py-2 mb-2 text-sm">
           <span><?= is_hi()?$doc[1]:$doc[0] ?></span>
           <?php if($v['status']==='Verified'): ?>
