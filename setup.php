@@ -142,7 +142,9 @@ try {
         class VARCHAR(10), pan VARCHAR(15), gst VARCHAR(20),
         district VARCHAR(80), status VARCHAR(30), risk_score INT,
         valid_upto DATE, registered_on DATE, qr_token VARCHAR(40),
-        login_user VARCHAR(60) NULL
+        login_user VARCHAR(60) NULL,
+        cin VARCHAR(30) NULL, address VARCHAR(255) NULL, contact VARCHAR(120) NULL,
+        experience_yrs INT NULL, completed_projects INT NULL, turnover DECIMAL(14,2) NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     SQL);
 

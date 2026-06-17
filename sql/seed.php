@@ -148,18 +148,18 @@ function seed_demo(PDO $pdo): void {
         $ins->execute([$s[0],$s[1],$s[2],$s[3],$s[4], date('Y-m-d H:i:s', strtotime('-'.rand(3,20).' days')), $next, $s[5]]);
     }
 
-    // ---- Contractors (with risk scores; one blacklisted) ----
+    // ---- Contractors (with risk scores + credentials; one blacklisted) ----
     $contractors = [
-        ['WRD/REG/3/0451','Narayan Constructions Pvt Ltd','नारायण कंस्ट्रक्शन्स','I','AABCN1234K','20ABCDE1234F1Z5','Ranchi','Active',18,'2027-03-31','2021-05-10'],
-        ['WRD/REG/3/0452','Jharkhand Infra Builders','झारखंड इंफ्रा बिल्डर्स','II','AACFJ5678L','20JHARK5678G1Z2','Dhanbad','Active',34,'2026-09-30','2020-08-22'],
-        ['WRD/REG/3/0453','Koel Engineering Works','कोयल इंजीनियरिंग','III','AADCK9012M','20KOELE9012H1Z9','Palamu','Active',22,'2026-12-31','2022-01-15'],
-        ['WRD/REG/3/0454','Subarnarekha Civil Co.','स्वर्णरेखा सिविल','I','AAECS3456N','20SUBAR3456J1Z7','Jamshedpur','Active',12,'2028-01-31','2019-11-03'],
-        ['WRD/REG/3/0455','Damodar Valley Contractors','दामोदर वैली','II','AAFCD7890P','20DAMOD7890K1Z4','Bokaro','Renewal Due',45,'2025-07-31','2021-02-28'],
-        ['WRD/REG/3/0456','Hilltop Project Pvt Ltd','हिलटॉप प्रोजेक्ट','IV','AAGCH2345Q','27HILLT2345L1Z1','Mumbai','Blacklisted',88,'2025-03-31','2020-06-19'],
-        ['WRD/REG/3/0457','Ranchi Builders Syndicate','रांची बिल्डर्स','III','AAHCR6789R','20RANCH6789M1Z8','Ranchi','Active',29,'2027-06-30','2022-09-12'],
-        ['WRD/REG/3/0458','Santhal Infra Solutions','संथाल इंफ्रा','II','AAICS0123S','20SANTH0123N1Z6','Dumka','Active',38,'2026-11-30','2021-12-01'],
+        ['WRD/REG/3/0451','Narayan Constructions Pvt Ltd','नारायण कंस्ट्रक्शन्स','I','AABCN1234K','20ABCDE1234F1Z5','Ranchi','Active',18,'2027-03-31','2021-05-10','U45200JH2010PTC001451','Plot 12, HEC Colony, Dhurwa, Ranchi','0651-2345678',14,28,85000000.00],
+        ['WRD/REG/3/0452','Jharkhand Infra Builders','झारखंड इंफ्रा बिल्डर्स','II','AACFJ5678L','20JHARK5678G1Z2','Dhanbad','Active',34,'2026-09-30','2020-08-22','U45200JH2012PTC001452','Bank More, Dhanbad','0326-2233445',9,14,42000000.00],
+        ['WRD/REG/3/0453','Koel Engineering Works','कोयल इंजीनियरिंग','III','AADCK9012M','20KOELE9012H1Z9','Palamu','Active',22,'2026-12-31','2022-01-15','U45200JH2014PTC001453','Daltonganj, Palamu','06562-223344',6,8,18000000.00],
+        ['WRD/REG/3/0454','Subarnarekha Civil Co.','स्वर्णरेखा सिविल','I','AAECS3456N','20SUBAR3456J1Z7','Jamshedpur','Active',12,'2028-01-31','2019-11-03','U45200JH2009PTC001454','Sakchi, Jamshedpur','0657-2998877',16,35,120000000.00],
+        ['WRD/REG/3/0455','Damodar Valley Contractors','दामोदर वैली','II','AAFCD7890P','20DAMOD7890K1Z4','Bokaro','Renewal Due',45,'2025-07-31','2021-02-28','U45200JH2011PTC001455','Sector 4, Bokaro Steel City','06542-265432',8,11,31000000.00],
+        ['WRD/REG/3/0456','Hilltop Project Pvt Ltd','हिलटॉप प्रोजेक्ट','IV','AAGCH2345Q','27HILLT2345L1Z1','Mumbai','Blacklisted',88,'2025-03-31','2020-06-19','U45200MH2010PTC001456','Andheri East, Mumbai','022-26781234',5,4,9000000.00],
+        ['WRD/REG/3/0457','Ranchi Builders Syndicate','रांची बिल्डर्स','III','AAHCR6789R','20RANCH6789M1Z8','Ranchi','Active',29,'2027-06-30','2022-09-12','U45200JH2015PTC001457','Lalpur, Ranchi','0651-2567890',5,6,16000000.00],
+        ['WRD/REG/3/0458','Santhal Infra Solutions','संथाल इंफ्रा','II','AAICS0123S','20SANTH0123N1Z6','Dumka','Active',38,'2026-11-30','2021-12-01','U45200JH2013PTC001458','Dumka Town, Dumka','06434-224466',7,9,28000000.00],
     ];
-    $ins = $pdo->prepare('INSERT INTO contractors (reg_no,name,name_hi,class,pan,gst,district,status,risk_score,valid_upto,registered_on,qr_token) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)');
+    $ins = $pdo->prepare('INSERT INTO contractors (reg_no,name,name_hi,class,pan,gst,district,status,risk_score,valid_upto,registered_on,cin,address,contact,experience_yrs,completed_projects,turnover,qr_token) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
     foreach ($contractors as $c) { $c[] = bin2hex(random_bytes(6)); $ins->execute($c); }
     // Link the demo contractor login to its firm (portal scoping, consumer-style).
     $pdo->prepare("UPDATE contractors SET login_user='contractor' WHERE reg_no=?")->execute(['WRD/REG/3/0451']);
