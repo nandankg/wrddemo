@@ -1,6 +1,8 @@
 # Deploying to Hostinger (shared hosting / hPanel)
 
-The demo is plain **PHP 8.2 + MySQL**; all front-end libraries load from CDNs.
+The demo is plain **PHP 8.2 + MySQL**. Tailwind + fonts load from CDNs; the maps
+and QR (Leaflet, Chart.js, qrcode.js) are **vendored locally** under
+`assets/vendor/` and ship with the repo, so they work even on flaky venue WiFi.
 The installer (`setup.php`) is written for shared hosting — it connects to an
 **existing** database (it does not run `CREATE DATABASE`).
 
@@ -30,7 +32,7 @@ The installer (`setup.php`) is written for shared hosting — it connects to an
 4. **PHP version** — hPanel → Advanced → *PHP Configuration* → select **8.1 or 8.2**.
 
 5. **Install the database** — visit `https://yourdomain/setup.php` once. It creates
-   all 17 tables + seed data. Then open `https://yourdomain/`.
+   all 22 tables + seed data. Then open `https://yourdomain/`.
    All demo logins use password **`demo123`**.
 
 6. **Remove the installer** — delete (or rename) `setup.php` afterward; it is
@@ -54,7 +56,10 @@ The installer (`setup.php`) is written for shared hosting — it connects to an
    delete it again. ⚠️ This resets demo data to a clean state.
 
    > Schema-affecting changes so far include: `progress_updates` table (PPMS),
-   > `contractors.login_user` column + `ACCOUNTS` user (Contractor / E-Tariff).
+   > `contractors.login_user` column + `ACCOUNTS` user (Contractor / E-Tariff),
+   > and **Industrial Water Allocation Phases 1-2**: new `water_sources` and
+   > `inspections` tables + new `allocations` columns
+   > (`qr_token, fee_status, challan_no, paid_on, valid_upto, renewed_from`).
    > After pulling those for the first time, re-run `setup.php` once.
 
 3. **If a change doesn't appear**, clear the LiteSpeed/OPcache cache in hPanel.
@@ -65,8 +70,13 @@ The installer (`setup.php`) is written for shared hosting — it connects to an
 
 - **Stack:** this is the demo build (PHP/MySQL). The production stack in the RFP is
   React 18 + TypeScript + PostgreSQL 16 — present that in the architecture slides.
-- **Unbuilt products:** Industrial Water Allocation and Departmental Website + CMS
-  are not built yet, so their launcher cards 404. The other four (PPMS, E-Tariff,
-  Contractor) + the launcher are fully testable.
+- **Built products:** PPMS, Contractor, E-Tariff, and **Industrial Water Allocation
+  (Phases 1-2 — GIS, AI assist, analytics, JE-GRASS payment, QR-verified licence,
+  renewal, inspection)** are fully testable. Departmental Website + CMS is the
+  remaining card.
+- **QR licence:** the QR encodes an absolute URL built from the request host, so it
+  is phone-scannable on the live HTTPS domain (it points to
+  `app/allocation/licence_verify.php`). It only resolves correctly once served from
+  the real domain — localhost QRs aren't reachable from a phone.
 - **`config/config.php` precedence:** it loads `config/config.local.php` first (if
   present), then only fills in any DB_* constant that wasn't already defined.
