@@ -197,9 +197,17 @@ require __DIR__ . '/../../includes/header.php';
     <!-- Step 6: Documents (drag & drop) + E-GRAS fee -->
     <div class="wiz-pane hidden" data-pane="5">
       <div class="border-2 border-dashed border-slate-300 rounded-xl p-5 text-center text-sm text-slate-500 mb-3">⬆ <?= is_hi()?'दस्तावेज़ यहाँ खींचें और छोड़ें (डेमो)':'Drag & drop documents here (demo)' ?></div>
-      <?php foreach([['Photograph','फोटोग्राफ'],['Signature','हस्ताक्षर'],['PAN Card','पैन कार्ड'],['Incorporation Certificate','निगमन प्रमाणपत्र'],['GST Certificate','जीएसटी प्रमाणपत्र'],['Balance Sheet','बैलेंस शीट'],['CA Certificate','सीए प्रमाणपत्र']] as $doc): ?>
-        <label class="flex items-center justify-between border border-slate-200 rounded-lg px-3 py-2 mb-2 text-sm"><span><?= is_hi()?$doc[1]:$doc[0] ?></span><span class="text-emerald-600 text-xs font-semibold">✓ uploaded</span></label>
+      <?php foreach([['Photograph','फोटोग्राफ'],['Signature','हस्ताक्षर'],['PAN Card','पैन कार्ड'],['Incorporation Certificate','निगमन प्रमाणपत्र'],['GST Certificate','जीएसटी प्रमाणपत्र'],['Balance Sheet','बैलेंस शीट'],['CA Certificate','सीए प्रमाणपत्र']] as $doc): $v=contractor_doc_verify($doc[0],0); ?>
+        <label class="flex items-center justify-between border border-slate-200 rounded-lg px-3 py-2 mb-2 text-sm">
+          <span><?= is_hi()?$doc[1]:$doc[0] ?></span>
+          <?php if($v['status']==='Verified'): ?>
+            <span class="text-emerald-600 text-xs font-semibold">🤖 ✓ <?= is_hi()?'सत्यापित':'Verified' ?></span>
+          <?php else: ?>
+            <span class="text-amber-600 text-xs font-semibold" title="<?= e($v['issue']) ?>">⚠ <?= e($v['issue']) ?></span>
+          <?php endif; ?>
+        </label>
       <?php endforeach; ?>
+      <p class="text-[11px] text-slate-400 mb-2">🤖 <?= is_hi()?'एआई दस्तावेज़ जाँच — हस्ताक्षर, तिथि एवं गुणवत्ता।':'AI document check — signature, date & quality.' ?></p>
       <div class="bg-paper rounded-xl p-3 text-sm mt-3 flex justify-between"><span class="text-slate-500"><?= is_hi()?'पंजीकरण शुल्क (ई-ग्रास)':'Registration Fee (E-GRAS)' ?></span><span class="font-semibold" id="feeAmt">₹10,000</span></div>
       <div class="mt-2 text-sm text-emerald-700 bg-emerald-50 rounded-xl px-3 py-2">✓ <?= is_hi()?'भुगतान सफल (डेमो)।':'Payment successful (demo).' ?></div>
     </div>
