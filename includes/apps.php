@@ -33,7 +33,7 @@ function wrd_apps(): array {
             'accent' => '#2563eb', 'icon' => '⚒️',
             'tagline' => 'Online empanelment, verification, e-certificate with QR.',
             'tagline_hi' => 'ऑनलाइन सूचीयन, सत्यापन, क्यूआर सहित ई-प्रमाणपत्र।',
-            'home' => 'app/contractor/index.php',
+            'home' => 'public/contractor.php',
             'roles' => ['CONTRACTOR','ASO','AE','EE','EIC'],
             'nav' => [
                 ['key'=>'dashboard','label'=>'Registry Desk','url'=>'app/contractor/index.php','icon'=>'▤'],
