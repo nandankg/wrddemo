@@ -160,8 +160,8 @@ require __DIR__ . '/../../includes/header.php';
     <div class="wiz-pane hidden" data-pane="1">
       <p class="text-sm text-slate-500 mb-2"><?= is_hi()?'श्रेणी चुनें — पात्रता मानदंड:':'Choose a class — eligibility criteria:' ?></p>
       <div class="grid grid-cols-2 gap-2 text-xs mb-3">
-        <?php foreach([['I','10+ yrs · 10+ proj · ₹5 Cr+'],['II','7+ yrs · 6+ proj · ₹3 Cr+'],['III','4+ yrs · 3+ proj · ₹1.5 Cr+'],['IV','Entry level']] as $cc): ?>
-          <div class="border border-slate-200 rounded-lg px-3 py-2"><b>Class <?= $cc[0] ?></b><div class="text-slate-400"><?= $cc[1] ?></div></div>
+        <?php foreach([['I','10+ yrs · 10+ proj · ₹5 Cr+','10+ वर्ष · 10+ परियोजना · ₹5 करोड़+'],['II','7+ yrs · 6+ proj · ₹3 Cr+','7+ वर्ष · 6+ परियोजना · ₹3 करोड़+'],['III','4+ yrs · 3+ proj · ₹1.5 Cr+','4+ वर्ष · 3+ परियोजना · ₹1.5 करोड़+'],['IV','Entry level','प्रवेश स्तर']] as $cc): ?>
+          <div class="border border-slate-200 rounded-lg px-3 py-2"><b>Class <?= $cc[0] ?></b><div class="text-slate-400"><?= is_hi()?$cc[2]:$cc[1] ?></div></div>
         <?php endforeach; ?>
       </div>
       <label class="text-sm font-medium text-slate-700"><?= is_hi()?'आवेदित श्रेणी':'Applied Class' ?></label>
@@ -171,8 +171,8 @@ require __DIR__ . '/../../includes/header.php';
     <!-- Step 3: Technical Credentials -->
     <div class="wiz-pane hidden" data-pane="2">
       <div class="grid grid-cols-2 gap-3">
-        <div><label class="text-sm font-medium text-slate-700"><?= is_hi()?'अनुभव (वर्ष)':'Experience (years)' ?></label><input type="number" name="experience_yrs" id="f_yrs" min="0" value="5" class="mt-1 w-full border border-slate-300 rounded-xl px-3 py-2.5"></div>
-        <div><label class="text-sm font-medium text-slate-700"><?= is_hi()?'पूर्ण परियोजनाएँ':'Completed Projects' ?></label><input type="number" name="completed_projects" id="f_proj" min="0" value="5" class="mt-1 w-full border border-slate-300 rounded-xl px-3 py-2.5"></div>
+        <div><label class="text-sm font-medium text-slate-700"><?= is_hi()?'अनुभव (वर्ष)':'Experience (years)' ?></label><input type="number" name="experience_yrs" id="f_yrs" min="0" value="5" oninput="recomputeElig()" class="mt-1 w-full border border-slate-300 rounded-xl px-3 py-2.5"></div>
+        <div><label class="text-sm font-medium text-slate-700"><?= is_hi()?'पूर्ण परियोजनाएँ':'Completed Projects' ?></label><input type="number" name="completed_projects" id="f_proj" min="0" value="5" oninput="recomputeElig()" class="mt-1 w-full border border-slate-300 rounded-xl px-3 py-2.5"></div>
       </div>
       <p class="text-xs text-slate-400 mt-3"><?= is_hi()?'कार्य आदेश एवं पूर्णता प्रमाणपत्र दस्तावेज़ चरण में अपलोड करें।':'Upload work orders & completion certificates in the Documents step.' ?></p>
     </div>
@@ -180,7 +180,7 @@ require __DIR__ . '/../../includes/header.php';
     <!-- Step 4: Financial Credentials + live eligibility -->
     <div class="wiz-pane hidden" data-pane="3">
       <label class="text-sm font-medium text-slate-700"><?= is_hi()?'वार्षिक टर्नओवर (₹)':'Annual Turnover (₹)' ?></label>
-      <input type="number" name="turnover" id="f_turn" min="0" step="100000" value="16000000" class="mt-1 w-full border border-slate-300 rounded-xl px-3 py-2.5">
+      <input type="number" name="turnover" id="f_turn" min="0" step="100000" value="16000000" oninput="recomputeElig()" class="mt-1 w-full border border-slate-300 rounded-xl px-3 py-2.5">
       <p class="text-xs text-slate-400 mt-1"><?= is_hi()?'आईटी रिटर्न, बैलेंस शीट, सीए प्रमाणपत्र दस्तावेज़ चरण में।':'IT returns, balance sheet & CA certificate in the Documents step.' ?></p>
       <div id="eligBox" class="mt-3 rounded-xl px-3 py-2.5 text-sm font-semibold" style="background:color-mix(in srgb,<?= e($APP['accent']) ?> 12%,#fff);color:<?= e($APP['accent']) ?>">🤖 <?= is_hi()?'अनुशंसित श्रेणी':'Recommended class' ?>: <span id="eligClass">—</span></div>
     </div>
@@ -197,8 +197,8 @@ require __DIR__ . '/../../includes/header.php';
     <!-- Step 6: Documents (drag & drop) + E-GRAS fee -->
     <div class="wiz-pane hidden" data-pane="5">
       <div class="border-2 border-dashed border-slate-300 rounded-xl p-5 text-center text-sm text-slate-500 mb-3">⬆ <?= is_hi()?'दस्तावेज़ यहाँ खींचें और छोड़ें (डेमो)':'Drag & drop documents here (demo)' ?></div>
-      <?php foreach(['Photograph','Signature','PAN Card','Incorporation Certificate','GST Certificate','Balance Sheet','CA Certificate'] as $doc): ?>
-        <label class="flex items-center justify-between border border-slate-200 rounded-lg px-3 py-2 mb-2 text-sm"><span><?= $doc ?></span><span class="text-emerald-600 text-xs font-semibold">✓ uploaded</span></label>
+      <?php foreach([['Photograph','फोटोग्राफ'],['Signature','हस्ताक्षर'],['PAN Card','पैन कार्ड'],['Incorporation Certificate','निगमन प्रमाणपत्र'],['GST Certificate','जीएसटी प्रमाणपत्र'],['Balance Sheet','बैलेंस शीट'],['CA Certificate','सीए प्रमाणपत्र']] as $doc): ?>
+        <label class="flex items-center justify-between border border-slate-200 rounded-lg px-3 py-2 mb-2 text-sm"><span><?= is_hi()?$doc[1]:$doc[0] ?></span><span class="text-emerald-600 text-xs font-semibold">✓ uploaded</span></label>
       <?php endforeach; ?>
       <div class="bg-paper rounded-xl p-3 text-sm mt-3 flex justify-between"><span class="text-slate-500"><?= is_hi()?'पंजीकरण शुल्क (ई-ग्रास)':'Registration Fee (E-GRAS)' ?></span><span class="font-semibold" id="feeAmt">₹10,000</span></div>
       <div class="mt-2 text-sm text-emerald-700 bg-emerald-50 rounded-xl px-3 py-2">✓ <?= is_hi()?'भुगतान सफल (डेमो)।':'Payment successful (demo).' ?></div>
@@ -221,6 +221,7 @@ function recomputeElig(){
   document.getElementById('eligClass').textContent='Class '+cls;
 }
 function wizStep(dir){
+  document.getElementById('gsterr').classList.add('hidden');
   if(dir>0 && cur===0){ const g=document.getElementById('f_gst').value.trim();
     if(g && !g.startsWith('20')){ document.getElementById('gsterr').classList.remove('hidden'); return; } }
   cur=Math.max(0,Math.min(LAST,cur+dir));
@@ -234,6 +235,7 @@ function wizStep(dir){
   if(cur===3) recomputeElig();
 }
 function digilocker(){
+  const btn=document.getElementById('dlBtn'); if(btn.disabled) return; btn.disabled=true;
   const box=document.getElementById('dlStatus'); box.classList.remove('hidden');
   box.innerHTML='⏳ Connecting to DigiLocker…';
   const items=['PAN','Aadhaar','GST','Company Documents']; let i=0;
