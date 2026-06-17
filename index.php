@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/header.php';   // $LAYOUT defaults to 'public'; no app context => default accent
 require_once __DIR__ . '/includes/apps.php';
+require_once __DIR__ . '/includes/leaders.php';
 $apps = wrd_apps();
 ?>
 <!-- ===== Suite hero ===== -->
@@ -20,6 +21,8 @@ $apps = wrd_apps();
     </div>
   </div>
 </section>
+
+<?php render_leaders(); ?>
 
 <!-- ===== Product cards ===== -->
 <section class="max-w-7xl mx-auto px-4 py-12">

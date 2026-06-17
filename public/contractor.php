@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../includes/header.php';   // $LAYOUT defaults to 'public'
-require_once __DIR__ . '/../includes/apps.php';
+require_once __DIR__ . '/../includes/leaders.php';
 require_once __DIR__ . '/../app/contractor/lib.php';
 $pdo = db();
 $contractors = $pdo->query('SELECT status FROM contractors')->fetchAll();
@@ -56,4 +56,5 @@ $actions = [
     <?php endforeach; ?>
   </div>
 </section>
+<?php render_leaders(); ?>
 <?php require __DIR__ . '/../includes/footer.php'; ?>
