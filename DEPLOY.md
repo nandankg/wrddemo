@@ -57,9 +57,13 @@ The installer (`setup.php`) is written for shared hosting — it connects to an
 
    > Schema-affecting changes so far include: `progress_updates` table (PPMS),
    > `contractors.login_user` column + `ACCOUNTS` user (Contractor / E-Tariff),
-   > and **Industrial Water Allocation Phases 1-2**: new `water_sources` and
+   > **Industrial Water Allocation Phases 1-2**: new `water_sources` and
    > `inspections` tables + new `allocations` columns
-   > (`qr_token, fee_status, challan_no, paid_on, valid_upto, renewed_from`).
+   > (`qr_token, fee_status, challan_no, paid_on, valid_upto, renewed_from`),
+   > **Contractor Phase 2**: new `contractor_queries` table, and
+   > **Contractor Phase 3**: new `contractors.category` column plus a much larger
+   > contractor/application seed (~80 firms across all 24 districts, multi-year
+   > paid apps → district-wise revenue & map data).
    > After pulling those for the first time, re-run `setup.php` once.
 
 3. **If a change doesn't appear**, clear the LiteSpeed/OPcache cache in hPanel.
