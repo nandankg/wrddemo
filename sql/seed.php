@@ -174,6 +174,19 @@ function seed_demo(PDO $pdo): void {
     $ins = $pdo->prepare('INSERT INTO contractor_apps (ack_no,contractor_id,type,class,stage,status,fee,fee_paid,applied_on) VALUES (?,?,?,?,?,?,?,?,?)');
     foreach ($apps as $a) $ins->execute($a);
 
+    // ---- Contractor queries (officer<->contractor round-trip) ----
+    $appIds = $pdo->query('SELECT id FROM contractor_apps ORDER BY id')->fetchAll(PDO::FETCH_COLUMN);
+    // App #3 (new applicant at ASO) is held by an open query.
+    $pdo->prepare("UPDATE contractor_apps SET status='Query Raised' WHERE id=?")->execute([$appIds[2]]);
+    $q = $pdo->prepare('INSERT INTO contractor_queries (app_id,raised_by,raised_role,query_text,status,response_text,raised_on,responded_on,resolved_on) VALUES (?,?,?,?,?,?,?,?,?)');
+    $q->execute([$appIds[2], 'Sunita Kumari (ASO, Ranchi)', 'ASO',
+        'Please upload an updated GST registration certificate — the copy on file has expired.',
+        'Open', null, date('Y-m-d', strtotime('-2 days')), null, null]);
+    $q->execute([$appIds[1], 'Ravi Sharma (EE, Ranchi)', 'EE',
+        'Work-order value on completion certificate #3 does not match the audited financial statement.',
+        'Resolved', 'Revised completion certificate uploaded with the corrected work-order value.',
+        date('Y-m-d', strtotime('-9 days')), date('Y-m-d', strtotime('-7 days')), date('Y-m-d', strtotime('-6 days'))]);
+
     // ---- Industrial water allocations (workflow stages) ----
     $alloc = [
         ['WRD/IWA/2526/201','Tata Steel Ltd','River','Subarnarekha River',95.0,'Perennial',5,'East Singhbhum','SECRETARY','Approved','LIC/2526/0044','20SUBAR3456J1Z7',4750000,'2025-04-15'],

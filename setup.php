@@ -23,7 +23,7 @@ try {
     // 2. Drop existing demo tables (clean reset).
     $pdo->exec('SET FOREIGN_KEY_CHECKS=0');
     foreach (['scheduled_reports','notifications','milestones','progress_updates','workflow_log','payments','bills','drawal_entries','consumers','inspections','water_sources','allocations',
-              'contractor_apps','contractors','fund_requisitions','projects','schemes',
+              'contractor_queries','contractor_apps','contractors','fund_requisitions','projects','schemes',
               'divisions','content','grievances','rti_applications','users'] as $t) {
         $pdo->exec("DROP TABLE IF EXISTS `$t`");
     }
@@ -154,6 +154,18 @@ try {
         ack_no VARCHAR(40) UNIQUE, contractor_id INT, type VARCHAR(20),
         class VARCHAR(10), stage VARCHAR(20), status VARCHAR(30),
         fee DECIMAL(12,2), fee_paid TINYINT DEFAULT 0, applied_on DATE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    SQL);
+
+    $pdo->exec(<<<SQL
+    CREATE TABLE contractor_queries (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        app_id INT,
+        raised_by VARCHAR(120), raised_role VARCHAR(20),
+        query_text TEXT,
+        status VARCHAR(20) DEFAULT 'Open',
+        response_text TEXT NULL,
+        raised_on DATE, responded_on DATE NULL, resolved_on DATE NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     SQL);
 
