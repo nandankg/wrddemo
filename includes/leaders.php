@@ -6,7 +6,7 @@ declare(strict_types=1);
  * Data is pure (wrd_leaders); the render_* helpers echo HTML.
  *
  *  - render_hero_portraits()  : CM + Minister, stacked, for the dark hero's right column.
- *  - render_secretaries()     : Secretary + Additional Secretary band, shown below the hero.
+ *  - render_secretaries()     : Secretariat band (Secretary, Addl. Secretary, Joint Secretary), below the hero.
  */
 
 /** The WRD Jharkhand leadership, in protocol order. `tier` groups them for layout. */
@@ -20,6 +20,8 @@ function wrd_leaders(): array {
          'designation'=>'Secretary, WRD',                          'designation_hi'=>'सचिव, जल संसाधन विभाग'],
         ['slug'=>'additional-secretary', 'tier'=>'secretariat','name'=>'Additional Secretary','name_hi'=>'अपर सचिव',
          'designation'=>'Water Resources Department',              'designation_hi'=>'जल संसाधन विभाग'],
+        ['slug'=>'bijay-kumar-bhagat',   'tier'=>'secretariat','name'=>'Shri Bijay Kumar Bhagat','name_hi'=>'श्री विजय कुमार भगत',
+         'designation'=>'Joint Secretary (Engineering)',           'designation_hi'=>'संयुक्त सचिव (अभियांत्रिकी)'],
     ];
 }
 
@@ -78,7 +80,7 @@ function render_hero_portraits(): void {
     <?php
 }
 
-/** Secretary + Additional Secretary band, shown below the hero. */
+/** Secretariat band (Secretary, Additional Secretary, Joint Secretary), shown below the hero. */
 function render_secretaries(): void {
     $leaders = wrd_leaders_in('secretariat');
     if (!$leaders) return;
@@ -89,7 +91,7 @@ function render_secretaries(): void {
           <span class="h-5 w-1.5 rounded bg-brand" aria-hidden="true"></span>
           <h2 class="font-display text-xl font-semibold text-ink"><?= is_hi()?'विभागीय नेतृत्व':'Departmental Leadership' ?></h2>
         </div>
-        <div class="grid grid-cols-2 gap-6 max-w-xl mx-auto">
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
           <?php foreach ($leaders as $l):
             $name = is_hi() ? $l['name_hi'] : $l['name'];
             $desg = is_hi() ? $l['designation_hi'] : $l['designation'];
