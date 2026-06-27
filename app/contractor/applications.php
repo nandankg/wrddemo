@@ -63,6 +63,9 @@ if ($isContractor) {
         <div><div class="font-medium text-slate-800"><?= e($a['cname']??'New Applicant') ?> <span class="text-xs text-slate-400 font-mono">· <?= e($a['ack_no']) ?></span></div>
         <div class="text-xs text-slate-500"><?= e($a['type']) ?> · Class <?= e($a['class']) ?> · Fee <?= inr((float)$a['fee']) ?> <?= $a['fee_paid']?'<span class="text-emerald-600">✓ paid</span>':'<span class="text-rose-600">unpaid</span>' ?></div></div>
         <?= badge($a['status']) ?>
+        <?php if(!$isContractor): ?>
+          <a href="<?= base_url('app/contractor/scrutiny.php') ?>?app_id=<?= $a['id'] ?>" class="text-xs font-semibold" style="color:<?= e($APP['accent']) ?>"><?= is_hi()?'जांच खोलें':'Open scrutiny' ?> →</a>
+        <?php endif; ?>
       </div>
       <!-- stage tracker -->
       <div class="flex items-center gap-1 mt-3">
