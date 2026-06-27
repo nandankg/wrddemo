@@ -159,8 +159,9 @@ function seed_demo(PDO $pdo): void {
         ['WRD/REG/3/0457','Ranchi Builders Syndicate','रांची बिल्डर्स','III','AAHCR6789R','20RANCH6789M1Z8','Ranchi','Active',29,'2027-06-30','2022-09-12','U45200JH2015PTC001457','Lalpur, Ranchi','0651-2567890',5,6,16000000.00],
         ['WRD/REG/3/0458','Santhal Infra Solutions','संथाल इंफ्रा','II','AAICS0123S','20SANTH0123N1Z6','Dumka','Active',38,'2026-11-30','2021-12-01','U45200JH2013PTC001458','Dumka Town, Dumka','06434-224466',7,9,28000000.00],
     ];
-    $ins = $pdo->prepare('INSERT INTO contractors (reg_no,name,name_hi,class,pan,gst,district,status,risk_score,valid_upto,registered_on,cin,address,contact,experience_yrs,completed_projects,turnover,qr_token) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-    foreach ($contractors as $c) { $c[] = bin2hex(random_bytes(6)); $ins->execute($c); }
+    $ins = $pdo->prepare('INSERT INTO contractors (reg_no,name,name_hi,class,pan,gst,district,status,risk_score,valid_upto,registered_on,cin,address,contact,experience_yrs,completed_projects,turnover,category,qr_token) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+    $namedCats = ['Civil','Civil','Mechanical','Irrigation','Civil','Electrical','Civil','Mechanical'];
+    foreach ($contractors as $idx=>$c) { $c2 = $c; array_splice($c2, 17, 0, [$namedCats[$idx] ?? 'Civil']); $c2[] = bin2hex(random_bytes(6)); $ins->execute($c2); }
     // Link the demo contractor login to its firm (portal scoping, consumer-style).
     $pdo->prepare("UPDATE contractors SET login_user='contractor' WHERE reg_no=?")->execute(['WRD/REG/3/0451']);
 
@@ -187,6 +188,45 @@ function seed_demo(PDO $pdo): void {
         'Work-order value on completion certificate #3 does not match the audited financial statement.',
         'Resolved', 'Revised completion certificate uploaded with the corrected work-order value.',
         date('Y-m-d', strtotime('-9 days')), date('Y-m-d', strtotime('-7 days')), date('Y-m-d', strtotime('-6 days'))]);
+
+    // ---- Phase 3: bulk empanelment + multi-year paid revenue history ----
+    $P3_DIST = ['Bokaro','Chatra','Deoghar','Dhanbad','Dumka','East Singhbhum','Garhwa','Giridih','Godda','Gumla','Hazaribagh','Jamtara','Khunti','Koderma','Latehar','Lohardaga','Pakur','Palamu','Ramgarh','Ranchi','Sahibganj','Saraikela-Kharsawan','Simdega','West Singhbhum'];
+    $P3_CAT  = ['Civil','Mechanical','Electrical','Irrigation'];
+    $P3_CLS  = ['I','II','III','IV'];
+    $P3_FEE  = ['I'=>45000.0,'II'=>30000.0,'III'=>20000.0,'IV'=>10000.0];
+    $P3_TURN = ['I'=>60000000,'II'=>34000000,'III'=>17000000,'IV'=>6000000];
+    $P3_EXP  = ['I'=>12,'II'=>8,'III'=>5,'IV'=>3];
+    $cIns = $pdo->prepare('INSERT INTO contractors (reg_no,name,name_hi,class,pan,gst,district,status,risk_score,valid_upto,registered_on,cin,address,contact,experience_yrs,completed_projects,turnover,category,qr_token) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+    $aIns = $pdo->prepare('INSERT INTO contractor_apps (ack_no,contractor_id,type,class,stage,status,fee,fee_paid,applied_on) VALUES (?,?,?,?,?,?,?,?,?)');
+    $seq = 459; $ack = 1100; $nowY = (int)date('Y'); $todayStr = date('Y-m-d');
+    for ($i = 0; $i < 72; $i++) {
+        $dist = $P3_DIST[$i % 24];
+        $cls  = $P3_CLS[$i % 4];
+        $cat  = $P3_CAT[intdiv($i, 4) % 4];
+        $mod  = $i % 12;
+        $status = $mod === 11 ? 'Suspended' : ($mod === 10 ? 'Blacklisted' : 'Active');
+        $regYear = $nowY - (2 + ($i % 7));                          // registered 2..8 years ago
+        $registered = sprintf('%04d-%02d-15', $regYear, 1 + ($i % 12));
+        $valid = ($i % 6 === 5)
+            ? date('Y-m-d', strtotime('-' . (20 + $i) . ' days'))   // lapsed -> effective Expired
+            : sprintf('%04d-03-31', $nowY + 1 + ($i % 3));
+        $reg  = sprintf('WRD/REG/3/%04d', $seq++);
+        $risk = 12 + ($i * 13) % 75;
+        $turn = $P3_TURN[$cls] + ($i % 9) * 1500000;
+        $exp  = $P3_EXP[$cls] + ($i % 4);
+        $proj = $exp + ($i % 7);
+        $cIns->execute([$reg, "$dist $cat Works " . ($i + 1), '', $cls, 'AAAAA0000A', '20XXXX0000X1Z0',
+            $dist, $status, $risk, $valid, $registered, 'U45200JH' . $regYear . 'PTC0' . $seq,
+            "$dist, Jharkhand", '00000-000000', $exp, $proj, $turn, $cat, bin2hex(random_bytes(6))]);
+        $cid = (int)$pdo->lastInsertId();
+        // Registration fee in the registration year + an annual renewal each following year to date.
+        $aIns->execute([sprintf('WRD/ACK/REG/%05d', $ack++), $cid, 'New', $cls, 'EIC', 'Approved', $P3_FEE[$cls], 1, $registered]);
+        for ($y = $regYear + 1; $y <= $nowY; $y++) {
+            $rd = sprintf('%04d-%02d-10', $y, 1 + (($i + $y) % 12));
+            if ($rd > $todayStr) continue;
+            $aIns->execute([sprintf('WRD/ACK/REN/%05d', $ack++), $cid, 'Renewal', $cls, 'EIC', 'Approved', $P3_FEE[$cls], 1, $rd]);
+        }
+    }
 
     // ---- Industrial water allocations (workflow stages) ----
     $alloc = [
