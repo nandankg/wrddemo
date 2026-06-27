@@ -54,6 +54,7 @@ if ($view==='contractor') {
   $myq=[];
 }
 $k=contractor_kpis($apps,$contractors);
+$bd = contractor_app_breakdown($apps);
 $tasks=contractor_pending_actions($role,$apps);
 $STAGES=['ASO','AE','EE','EIC'];
 
@@ -85,6 +86,29 @@ require __DIR__ . '/../../includes/header.php';
       <div class="font-display text-3xl font-semibold mt-1 <?= $kp[2] ?>"><?= $kp[1] ?></div>
     </div>
   <?php endforeach; ?>
+</div>
+
+<!-- Screen 6: scrutiny pipeline breakdown -->
+<div class="card p-5 mb-6">
+  <div class="flex items-center gap-2 mb-4">
+    <span class="h-5 w-1.5 rounded bg-brand" aria-hidden="true"></span>
+    <h2 class="font-display text-lg font-semibold text-ink"><?= is_hi()?'जांच पाइपलाइन':'Scrutiny Pipeline' ?></h2>
+  </div>
+  <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 text-center">
+    <?php foreach ([
+        [is_hi()?'नए':'New', $bd['new'], 'text-sky-700'],
+        [is_hi()?'सत्यापन':'Verifying', $bd['verifying'], 'text-indigo-700'],
+        [is_hi()?'अनुमोदन हेतु':'Approval Pending', $bd['approval_pending'], 'text-violet-700'],
+        [is_hi()?'प्रश्न':'Query Raised', $bd['query'], 'text-amber-700'],
+        [is_hi()?'स्वीकृत':'Approved', $bd['approved'], 'text-emerald-700'],
+        [is_hi()?'अस्वीकृत':'Rejected', $bd['rejected'], 'text-rose-700'],
+      ] as $cell): ?>
+      <div class="rounded-xl bg-slate-50 py-3">
+        <div class="text-2xl font-display font-bold <?= $cell[2] ?>"><?= (int)$cell[1] ?></div>
+        <div class="text-[11px] text-slate-500 mt-0.5"><?= e($cell[0]) ?></div>
+      </div>
+    <?php endforeach; ?>
+  </div>
 </div>
 
 <div class="grid lg:grid-cols-3 gap-6">
