@@ -203,20 +203,24 @@ function seed_demo(PDO $pdo): void {
         $dist = $P3_DIST[$i % 24];
         $cls  = $P3_CLS[$i % 4];
         $cat  = $P3_CAT[intdiv($i, 4) % 4];
-        $mod  = $i % 12;
-        $status = $mod === 11 ? 'Suspended' : ($mod === 10 ? 'Blacklisted' : 'Active');
-        $regYear = $nowY - (2 + ($i % 7));                          // registered 2..8 years ago
+        $m7 = $i % 7;                                   // coprime to 4 -> every class sees every status
+        $status = $m7 === 6 ? 'Suspended' : ($m7 === 5 ? 'Blacklisted' : 'Active');
+        $regYear = $nowY - (2 + ($i % 7));
         $registered = sprintf('%04d-%02d-15', $regYear, 1 + ($i % 12));
-        $valid = ($i % 6 === 5)
-            ? date('Y-m-d', strtotime('-' . (20 + $i) . ' days'))   // lapsed -> effective Expired
+        $lapsed = ($status === 'Active' && $i % 5 === 4); // some Active firms have an expired registration
+        $valid = $lapsed
+            ? date('Y-m-d', strtotime('-' . (20 + $i) . ' days'))
             : sprintf('%04d-03-31', $nowY + 1 + ($i % 3));
-        $reg  = sprintf('WRD/REG/3/%04d', $seq++);
+        $regNum = $seq++;
+        $reg  = sprintf('WRD/REG/3/%04d', $regNum);
+        $pan  = sprintf('AABCD%04dQ', $i);              // varied synthetic PAN (Minor fix)
+        $gst  = '20' . $pan . '1Z5';                    // varied synthetic GST (Minor fix)
         $risk = 12 + ($i * 13) % 75;
         $turn = $P3_TURN[$cls] + ($i % 9) * 1500000;
         $exp  = $P3_EXP[$cls] + ($i % 4);
         $proj = $exp + ($i % 7);
-        $cIns->execute([$reg, "$dist $cat Works " . ($i + 1), '', $cls, 'AAAAA0000A', '20XXXX0000X1Z0',
-            $dist, $status, $risk, $valid, $registered, 'U45200JH' . $regYear . 'PTC0' . $seq,
+        $cIns->execute([$reg, "$dist $cat Works " . ($i + 1), '', $cls, $pan, $gst,
+            $dist, $status, $risk, $valid, $registered, 'U45200JH' . $regYear . 'PTC0' . $regNum,
             "$dist, Jharkhand", '00000-000000', $exp, $proj, $turn, $cat, bin2hex(random_bytes(6))]);
         $cid = (int)$pdo->lastInsertId();
         // Registration fee in the registration year + an annual renewal each following year to date.
