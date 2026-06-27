@@ -37,8 +37,8 @@ it('etariff nav exposes dashboard and bills in order', function () {
     assert_eq(['dashboard','bills'], array_column(wrd_app('etariff')['nav'], 'key'));
 });
 
-it('contractor nav exposes dashboard, applications, registry, verify in order', function () {
-    assert_eq(['dashboard','applications','registry','verify'], array_column(wrd_app('contractor')['nav'], 'key'));
+it('contractor nav exposes dashboard, applications, registry, verify, revenue, oversight in order', function () {
+    assert_eq(['dashboard','applications','registry','verify','revenue','oversight'], array_column(wrd_app('contractor')['nav'], 'key'));
 });
 
 it('allocation roles include the full AE..SECRETARY chain plus applicant', function () {

@@ -34,12 +34,14 @@ function wrd_apps(): array {
             'tagline' => 'Online empanelment, verification, e-certificate with QR.',
             'tagline_hi' => 'ऑनलाइन सूचीयन, सत्यापन, क्यूआर सहित ई-प्रमाणपत्र।',
             'home' => 'public/contractor.php',
-            'roles' => ['CONTRACTOR','ASO','AE','EE','EIC'],
+            'roles' => ['CONTRACTOR','ASO','AE','EE','EIC','SECRETARY'],
             'nav' => [
                 ['key'=>'dashboard','label'=>'Registry Desk','url'=>'app/contractor/index.php','icon'=>'▤'],
                 ['key'=>'applications','label'=>'Applications','url'=>'app/contractor/applications.php','icon'=>'📋','roles'=>['ASO','AE','EE','EIC']],
                 ['key'=>'registry','label'=>'Registered Contractors','url'=>'app/contractor/registry.php','icon'=>'📒','roles'=>['ASO','AE','EE','EIC']],
                 ['key'=>'verify','label'=>'Verify Certificate','url'=>'app/contractor/verify.php','icon'=>'✔','roles'=>['ASO','AE','EE','EIC']],
+                ['key'=>'revenue','label'=>'Revenue MIS','url'=>'app/contractor/revenue.php','icon'=>'₹','roles'=>['EE','EIC','SECRETARY']],
+                ['key'=>'oversight','label'=>'Command Centre','url'=>'app/contractor/oversight.php','icon'=>'🗺','roles'=>['EE','EIC','SECRETARY']],
             ],
         ],
         'allocation' => [
