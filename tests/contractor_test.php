@@ -158,3 +158,98 @@ it('contractor_can_forward blocks on open queries and terminal states', function
     assert_eq(false, contractor_can_forward(['stage'=>'EIC','status'=>'Approved'], 0));
     assert_eq(false, contractor_can_forward(['stage'=>'ASO','status'=>'Rejected'], 0));
 });
+
+it('contractor_effective_status applies Blacklisted > Expired > stored', function () {
+    $t = '2026-06-27';
+    assert_eq('Active',      contractor_effective_status(['status'=>'Active','valid_upto'=>'2027-03-31'], $t));
+    assert_eq('Expired',     contractor_effective_status(['status'=>'Active','valid_upto'=>'2025-01-01'], $t));
+    assert_eq('Suspended',   contractor_effective_status(['status'=>'Suspended','valid_upto'=>'2028-01-01'], $t));
+    assert_eq('Blacklisted', contractor_effective_status(['status'=>'Blacklisted','valid_upto'=>'2024-01-01'], $t)); // outranks Expired
+});
+
+it('contractor_filter matches district/class/category/effective-status', function () {
+    $t = '2026-06-27';
+    $cs = [
+      ['id'=>1,'class'=>'I','district'=>'Ranchi','category'=>'Civil','status'=>'Active','valid_upto'=>'2027-03-31'],
+      ['id'=>2,'class'=>'I','district'=>'Ranchi','category'=>'Civil','status'=>'Active','valid_upto'=>'2025-01-01'], // -> Expired
+      ['id'=>3,'class'=>'II','district'=>'Dhanbad','category'=>'Mechanical','status'=>'Suspended','valid_upto'=>'2028-01-01'],
+      ['id'=>4,'class'=>'I','district'=>'Bokaro','category'=>'Civil','status'=>'Blacklisted','valid_upto'=>'2024-01-01'],
+    ];
+    assert_eq(1, count(contractor_filter($cs, ['status'=>'Active'], $t)));     // only id1
+    assert_eq(1, count(contractor_filter($cs, ['status'=>'Expired'], $t)));    // only id2
+    assert_eq(2, count(contractor_filter($cs, ['district'=>'Ranchi'], $t)));   // id1,id2
+    assert_eq(3, count(contractor_filter($cs, ['class'=>'I'], $t)));           // id1,id2,id4
+    assert_eq(3, count(contractor_filter($cs, ['category'=>'Civil'], $t)));    // id1,id2,id4
+    assert_eq(1, count(contractor_filter($cs, ['district'=>'Ranchi','status'=>'Active'], $t)));
+    assert_eq(4, count(contractor_filter($cs, [], $t)));                       // no filters
+});
+
+it('contractor_empanelment_matrix counts active/suspended/expired per class', function () {
+    $t = '2026-06-27';
+    $cs = [
+      ['class'=>'I','status'=>'Active','valid_upto'=>'2027-03-31'],
+      ['class'=>'I','status'=>'Active','valid_upto'=>'2025-01-01'],   // Expired
+      ['class'=>'I','status'=>'Blacklisted','valid_upto'=>'2024-01-01'], // none of the 3
+      ['class'=>'II','status'=>'Suspended','valid_upto'=>'2028-01-01'],
+    ];
+    $m = contractor_empanelment_matrix($cs, $t);
+    assert_eq(1, $m['I']['active']);
+    assert_eq(1, $m['I']['expired']);
+    assert_eq(0, $m['I']['suspended']);
+    assert_eq(1, $m['II']['suspended']);
+    assert_eq(0, $m['III']['active']);
+});
+
+it('contractor_revenue_kpis splits total/new/renewal and current-FY (paid only)', function () {
+    $apps = [
+      ['contractor_id'=>1,'type'=>'New','fee'=>45000,'fee_paid'=>1,'applied_on'=>'2026-05-10'],
+      ['contractor_id'=>1,'type'=>'Renewal','fee'=>45000,'fee_paid'=>1,'applied_on'=>'2026-06-01'],
+      ['contractor_id'=>3,'type'=>'New','fee'=>30000,'fee_paid'=>0,'applied_on'=>'2026-06-02'], // unpaid -> excluded
+      ['contractor_id'=>3,'type'=>'New','fee'=>30000,'fee_paid'=>1,'applied_on'=>'2026-02-15'], // before FY -> not in fy
+      ['contractor_id'=>4,'type'=>'New','fee'=>10000,'fee_paid'=>1,'applied_on'=>'2024-12-01'],
+    ];
+    $k = contractor_revenue_kpis($apps, '2026-06-27'); // FY start 2026-04-01
+    assert_eq(130000.0, $k['total']);
+    assert_eq(45000.0,  $k['renewal']);
+    assert_eq(85000.0,  $k['new']);
+    assert_eq(90000.0,  $k['fy']);
+});
+
+it('contractor_monthly_collection buckets the trailing 12 months', function () {
+    $apps = [
+      ['fee'=>45000,'fee_paid'=>1,'applied_on'=>'2026-05-10'],
+      ['fee'=>45000,'fee_paid'=>1,'applied_on'=>'2026-06-01'],
+      ['fee'=>30000,'fee_paid'=>0,'applied_on'=>'2026-06-02'], // unpaid
+      ['fee'=>30000,'fee_paid'=>1,'applied_on'=>'2026-02-15'],
+      ['fee'=>10000,'fee_paid'=>1,'applied_on'=>'2024-12-01'], // out of window
+    ];
+    $mc = contractor_monthly_collection($apps, '2026-06-27');
+    $keys = array_keys($mc);
+    assert_eq(12, count($mc));
+    assert_eq('2025-07', $keys[0]);
+    assert_eq('2026-06', $keys[11]);
+    assert_eq(45000.0, $mc['2026-05']);
+    assert_eq(45000.0, $mc['2026-06']);
+    assert_eq(30000.0, $mc['2026-02']);
+    assert_eq(120000.0, array_sum($mc));
+});
+
+it('contractor_district_rollup aggregates count and paid revenue per district', function () {
+    $cs = [
+      ['id'=>1,'district'=>'Ranchi'],['id'=>2,'district'=>'Ranchi'],
+      ['id'=>3,'district'=>'Dhanbad'],['id'=>4,'district'=>'Bokaro'],
+    ];
+    $apps = [
+      ['contractor_id'=>1,'fee'=>45000,'fee_paid'=>1],
+      ['contractor_id'=>1,'fee'=>45000,'fee_paid'=>1],
+      ['contractor_id'=>3,'fee'=>30000,'fee_paid'=>1],
+      ['contractor_id'=>3,'fee'=>30000,'fee_paid'=>0], // unpaid
+      ['contractor_id'=>4,'fee'=>10000,'fee_paid'=>1],
+    ];
+    $r = contractor_district_rollup($cs, $apps);
+    assert_eq(2, $r['Ranchi']['count']);
+    assert_eq(90000.0, $r['Ranchi']['revenue']);
+    assert_eq(1, $r['Dhanbad']['count']);
+    assert_eq(30000.0, $r['Dhanbad']['revenue']);
+    assert_eq(10000.0, $r['Bokaro']['revenue']);
+});

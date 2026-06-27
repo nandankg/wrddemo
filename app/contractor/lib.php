@@ -186,3 +186,96 @@ function contractor_can_forward(array $app, int $openQueries): bool {
     if (in_array($app['status'] ?? '', ['Approved','Rejected','Query Raised'], true)) return false;
     return contractor_next_stage($app['stage'] ?? '') !== null;
 }
+
+/* ===========================================================================
+ * Phase 3 — empanelment filtering, revenue aggregation, district rollup.
+ * All deterministic and offline-safe (no DB, no network).
+ * =========================================================================== */
+
+/** Effective status: Blacklisted > Expired (valid_upto < today) > stored status. */
+function contractor_effective_status(array $c, string $today): string {
+    $s = (string)($c['status'] ?? '');
+    if ($s === 'Blacklisted') return 'Blacklisted';
+    if (!empty($c['valid_upto']) && (string)$c['valid_upto'] < $today) return 'Expired';
+    return $s;
+}
+
+/** Filter contractors by district/class/category/status ('' = no filter for that key). */
+function contractor_filter(array $contractors, array $f, ?string $today = null): array {
+    $today = $today ?: date('Y-m-d');
+    $out = [];
+    foreach ($contractors as $c) {
+        if (!empty($f['district']) && ($c['district'] ?? '') !== $f['district']) continue;
+        if (!empty($f['class'])    && ($c['class'] ?? '')    !== $f['class'])    continue;
+        if (!empty($f['category']) && ($c['category'] ?? '') !== $f['category']) continue;
+        if (!empty($f['status'])   && contractor_effective_status($c, $today) !== $f['status']) continue;
+        $out[] = $c;
+    }
+    return $out;
+}
+
+/** Per-class active/suspended/expired counts (by effective status). */
+function contractor_empanelment_matrix(array $contractors, ?string $today = null): array {
+    $today = $today ?: date('Y-m-d');
+    $m = [];
+    foreach (['I','II','III','IV'] as $cls) $m[$cls] = ['active'=>0,'suspended'=>0,'expired'=>0];
+    foreach ($contractors as $c) {
+        $cls = $c['class'] ?? '';
+        if (!isset($m[$cls])) continue;
+        switch (contractor_effective_status($c, $today)) {
+            case 'Active':    $m[$cls]['active']++;    break;
+            case 'Suspended': $m[$cls]['suspended']++; break;
+            case 'Expired':   $m[$cls]['expired']++;   break;
+        }
+    }
+    return $m;
+}
+
+/** Revenue KPIs from paid applications: total, renewal, new, and current-FY-to-date. */
+function contractor_revenue_kpis(array $apps, ?string $today = null): array {
+    $today = $today ?: date('Y-m-d');
+    $ty = (int)substr($today, 0, 4); $tm = (int)substr($today, 5, 2);
+    $fyStart = (($tm >= 4 ? $ty : $ty - 1)) . '-04-01';
+    $k = ['total'=>0.0, 'renewal'=>0.0, 'new'=>0.0, 'fy'=>0.0];
+    foreach ($apps as $a) {
+        if ((int)($a['fee_paid'] ?? 0) !== 1) continue;
+        $fee = (float)($a['fee'] ?? 0);
+        $k['total'] += $fee;
+        if (($a['type'] ?? '') === 'Renewal') $k['renewal'] += $fee; else $k['new'] += $fee;
+        $on = (string)($a['applied_on'] ?? '');
+        if ($on >= $fyStart && $on <= $today) $k['fy'] += $fee;
+    }
+    return $k;
+}
+
+/** Trailing-12-month collection series ['YYYY-MM'=>amount], oldest first, from paid apps. */
+function contractor_monthly_collection(array $apps, ?string $today = null): array {
+    $today = $today ?: date('Y-m-d');
+    $anchor = strtotime(substr($today, 0, 7) . '-01');
+    $months = [];
+    for ($i = 11; $i >= 0; $i--) $months[date('Y-m', strtotime("-$i months", $anchor))] = 0.0;
+    foreach ($apps as $a) {
+        if ((int)($a['fee_paid'] ?? 0) !== 1) continue;
+        $m = substr((string)($a['applied_on'] ?? ''), 0, 7);
+        if (isset($months[$m])) $months[$m] += (float)($a['fee'] ?? 0);
+    }
+    return $months;
+}
+
+/** Per-district ['count'=>n,'revenue'=>paid fees] keyed by district name. */
+function contractor_district_rollup(array $contractors, array $apps): array {
+    $distOf = []; $roll = [];
+    foreach ($contractors as $c) {
+        $d = $c['district'] ?? '';
+        if ($d === '') continue;
+        $distOf[(int)$c['id']] = $d;
+        if (!isset($roll[$d])) $roll[$d] = ['count'=>0, 'revenue'=>0.0];
+        $roll[$d]['count']++;
+    }
+    foreach ($apps as $a) {
+        if ((int)($a['fee_paid'] ?? 0) !== 1) continue;
+        $d = $distOf[(int)($a['contractor_id'] ?? 0)] ?? null;
+        if ($d !== null) $roll[$d]['revenue'] += (float)($a['fee'] ?? 0);
+    }
+    return $roll;
+}
