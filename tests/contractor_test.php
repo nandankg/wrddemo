@@ -50,8 +50,8 @@ it('contractor_pending_actions returns stage work for the acting role', function
       ['id'=>2,'ack_no'=>'A2','stage'=>'EIC','status'=>'Pending Approval','cname'=>'Y'],
       ['id'=>3,'ack_no'=>'A3','stage'=>'AE','status'=>'Approved','cname'=>'Z'],
     ];
-    assert_eq('applications.php?id=1', contractor_pending_actions('ASO', $apps)[0]['url']);
-    assert_eq('applications.php?id=2', contractor_pending_actions('EIC', $apps)[0]['url']);
+    assert_eq('scrutiny.php?app_id=1', contractor_pending_actions('ASO', $apps)[0]['url']);
+    assert_eq('scrutiny.php?app_id=2', contractor_pending_actions('EIC', $apps)[0]['url']);
     assert_eq(0, count(contractor_pending_actions('AE', $apps)));        // id3 is Approved
     assert_eq(0, count(contractor_pending_actions('CONTRACTOR', $apps)));
 });
@@ -97,4 +97,64 @@ it('contractor_public_stats blends a production baseline with live seed counts',
     assert_eq(9842,  $s['active']);       // 9840 + 2 Active
     assert_eq(2142,  $s['apps_year']);    // 2140 + 2 in 2026
     assert_eq(7,     $s['avg_days']);
+});
+
+it('contractor_score is deterministic and weights experience/financial/compliance', function () {
+    // Class I, meets threshold exactly, clean docs, low risk.
+    $c = ['experience_yrs'=>10,'completed_projects'=>10,'turnover'=>50000000,
+          'class'=>'I','status'=>'Active','risk_score'=>10];
+    $s = contractor_score($c, []);
+    assert_eq(100, $s['experience']);   // 10yr + 10proj caps the bar
+    assert_eq(90,  $s['financial']);    // ratio 1.0 -> 40 + 50
+    assert_eq(90,  $s['compliance']);   // 100 - risk 10 - 0 issues
+    assert_eq(94,  $s['overall']);      // 35 + 27 + 31.5 -> 94
+    assert_eq('A', $s['band']);
+
+    // Doc issues lower compliance; experience & financial clamp at 100.
+    $c3 = ['experience_yrs'=>14,'completed_projects'=>28,'turnover'=>85000000,
+           'class'=>'I','status'=>'Active','risk_score'=>10];
+    $docs = [['status'=>'Verified'],['status'=>'Issue'],['status'=>'Issue']];
+    $s3 = contractor_score($c3, $docs);
+    assert_eq(100, $s3['experience']);
+    assert_eq(100, $s3['financial']);   // ratio 1.7 capped at 1.2 -> 40 + 60
+    assert_eq(60,  $s3['compliance']);  // 100 - 10 - 15*2
+    assert_eq(86,  $s3['overall']);
+    assert_eq('A', $s3['band']);
+
+    // Blacklisted zeroes compliance regardless of docs.
+    $c2 = ['experience_yrs'=>0,'completed_projects'=>0,'turnover'=>0,
+           'class'=>'IV','status'=>'Blacklisted','risk_score'=>40];
+    $s2 = contractor_score($c2, []);
+    assert_eq(0,   $s2['experience']);
+    assert_eq(40,  $s2['financial']);   // ratio 0 -> 40
+    assert_eq(0,   $s2['compliance']);  // blacklisted
+    assert_eq(12,  $s2['overall']);     // 0 + 12 + 0
+    assert_eq('C', $s2['band']);
+});
+
+it('contractor_app_breakdown buckets apps by review state', function () {
+    $apps = [
+      ['stage'=>'ASO','status'=>'Document Verification'],
+      ['stage'=>'AE','status'=>'Under Process'],
+      ['stage'=>'EE','status'=>'Under Process'],
+      ['stage'=>'EIC','status'=>'Under Process'],
+      ['stage'=>'AE','status'=>'Query Raised'],
+      ['stage'=>'EIC','status'=>'Approved'],
+      ['stage'=>'ASO','status'=>'Rejected'],
+    ];
+    $b = contractor_app_breakdown($apps);
+    assert_eq(1, $b['new']);
+    assert_eq(2, $b['verifying']);
+    assert_eq(1, $b['approval_pending']);
+    assert_eq(1, $b['query']);
+    assert_eq(1, $b['approved']);
+    assert_eq(1, $b['rejected']);
+});
+
+it('contractor_can_forward blocks on open queries and terminal states', function () {
+    assert_true(contractor_can_forward(['stage'=>'ASO','status'=>'Under Process'], 0));
+    assert_eq(false, contractor_can_forward(['stage'=>'ASO','status'=>'Under Process'], 1));
+    assert_eq(false, contractor_can_forward(['stage'=>'ASO','status'=>'Query Raised'], 0));
+    assert_eq(false, contractor_can_forward(['stage'=>'EIC','status'=>'Approved'], 0));
+    assert_eq(false, contractor_can_forward(['stage'=>'ASO','status'=>'Rejected'], 0));
 });

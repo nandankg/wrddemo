@@ -25,16 +25,36 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='register' &
   header('Location: index.php'); exit;
 }
 
+// Contractor answers an officer query: records the response and resumes the workflow.
+if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='respond_query' && $role==='CONTRACTOR') {
+  $qid=(int)($_POST['query_id']??0); $resp=trim($_POST['response_text']??'');
+  $q=$pdo->query("SELECT q.*, a.contractor_id FROM contractor_queries q JOIN contractor_apps a ON a.id=q.app_id WHERE q.id=$qid")->fetch();
+  // Only the owning contractor may respond, and only to a still-open query.
+  if ($q && $resp!=='' && $q['status']==='Open') {
+    $own=$pdo->query("SELECT 1 FROM contractors WHERE id=".(int)$q['contractor_id']." AND login_user=".$pdo->quote($u['username']))->fetchColumn();
+    if ($own) {
+      $pdo->prepare("UPDATE contractor_queries SET status='Responded', response_text=?, responded_on=CURDATE() WHERE id=?")->execute([$resp,$qid]);
+      $pdo->prepare("UPDATE contractor_apps SET status='Under Process' WHERE id=? AND status='Query Raised'")->execute([$q['app_id']]);
+      add_audit($pdo,'contractor_app',(int)$q['app_id'],'Query response submitted','Contractor',$q['raised_role'],$actor,$resp);
+      flash('Response submitted to the registering authority.');
+    }
+  }
+  header('Location: index.php'); exit;
+}
+
 $view = contractor_role_view($role);
 if ($view==='contractor') {
   $st=$pdo->prepare("SELECT a.*,c.name cname,c.name_hi cname_hi,c.id cid,c.status cstatus FROM contractor_apps a JOIN contractors c ON c.id=a.contractor_id WHERE c.login_user=? ORDER BY a.id DESC");
   $st->execute([$u['username']]); $apps=$st->fetchAll();
+  $myq=$pdo->query("SELECT q.* FROM contractor_queries q JOIN contractor_apps a ON a.id=q.app_id JOIN contractors c ON c.id=a.contractor_id WHERE c.login_user=".$pdo->quote($u['username'])." AND q.status='Open' ORDER BY q.id DESC")->fetchAll();
   $contractors=[];
 } else {
   $apps=$pdo->query("SELECT a.*,c.name cname FROM contractor_apps a LEFT JOIN contractors c ON c.id=a.contractor_id ORDER BY a.id DESC")->fetchAll();
   $contractors=$pdo->query("SELECT * FROM contractors")->fetchAll();
+  $myq=[];
 }
 $k=contractor_kpis($apps,$contractors);
+$bd = contractor_app_breakdown($apps);
 $tasks=contractor_pending_actions($role,$apps);
 $STAGES=['ASO','AE','EE','EIC'];
 
@@ -68,6 +88,29 @@ require __DIR__ . '/../../includes/header.php';
   <?php endforeach; ?>
 </div>
 
+<!-- Screen 6: scrutiny pipeline breakdown -->
+<div class="card p-5 mb-6">
+  <div class="flex items-center gap-2 mb-4">
+    <span class="h-5 w-1.5 rounded bg-brand" aria-hidden="true"></span>
+    <h2 class="font-display text-lg font-semibold text-ink"><?= is_hi()?'जांच पाइपलाइन':'Scrutiny Pipeline' ?></h2>
+  </div>
+  <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 text-center">
+    <?php foreach ([
+        [is_hi()?'नए':'New', $bd['new'], 'text-sky-700'],
+        [is_hi()?'सत्यापन':'Verifying', $bd['verifying'], 'text-indigo-700'],
+        [is_hi()?'अनुमोदन हेतु':'Approval Pending', $bd['approval_pending'], 'text-violet-700'],
+        [is_hi()?'प्रश्न':'Query Raised', $bd['query'], 'text-amber-700'],
+        [is_hi()?'स्वीकृत':'Approved', $bd['approved'], 'text-emerald-700'],
+        [is_hi()?'अस्वीकृत':'Rejected', $bd['rejected'], 'text-rose-700'],
+      ] as $cell): ?>
+      <div class="rounded-xl bg-slate-50 py-3">
+        <div class="text-2xl font-display font-bold <?= $cell[2] ?>"><?= (int)$cell[1] ?></div>
+        <div class="text-[11px] text-slate-500 mt-0.5"><?= e($cell[0]) ?></div>
+      </div>
+    <?php endforeach; ?>
+  </div>
+</div>
+
 <div class="grid lg:grid-cols-3 gap-6">
   <div class="lg:col-span-2 card p-5">
     <div class="flex items-center justify-between mb-3">
@@ -95,6 +138,21 @@ require __DIR__ . '/../../includes/header.php';
 </div>
 
 <?php else: // ===== contractor portal ===== ?>
+  <?php if (!empty($myq)): ?>
+    <div class="card p-6 mb-6 border-l-4 border-amber-400">
+      <h2 class="font-display text-lg font-semibold text-ink mb-3">⚠ <?= is_hi()?'विभाग से प्रश्न':'Queries from the Department' ?></h2>
+      <?php foreach ($myq as $q): ?>
+        <div class="border border-slate-100 rounded-xl p-4 mb-3">
+          <p class="text-sm text-slate-700"><?= e($q['query_text']) ?></p>
+          <form method="post" class="flex flex-wrap gap-2 mt-3 items-end">
+            <input type="hidden" name="query_id" value="<?= e($q['id']) ?>">
+            <input name="response_text" required placeholder="<?= is_hi()?'अपना उत्तर लिखें…':'Type your response…' ?>" class="flex-1 min-w-[200px] border border-slate-300 rounded-xl px-3 py-2.5 text-sm">
+            <button name="action" value="respond_query" class="btn-acc font-semibold px-4 py-2.5 rounded-xl text-sm"><?= is_hi()?'उत्तर भेजें':'Submit Response' ?></button>
+          </form>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
 <div class="space-y-3">
   <?php foreach($apps as $a): $i=array_search($a['stage'],$STAGES); ?>
     <div class="card p-5">

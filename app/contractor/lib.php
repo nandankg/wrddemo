@@ -53,7 +53,7 @@ function contractor_pending_actions(string $role, array $apps): array {
     foreach ($apps as $a) {
         if ($a['stage'] !== $role) continue;
         if (in_array($a['status'], ['Approved','Rejected'], true)) continue;
-        $out[] = ['label'=>$verb.' '.$a['ack_no'].' · '.($a['cname'] ?? 'New applicant'), 'meta'=>'', 'status'=>$a['status'], 'url'=>'applications.php?id='.$a['id']];
+        $out[] = ['label'=>$verb.' '.$a['ack_no'].' · '.($a['cname'] ?? 'New applicant'), 'meta'=>'', 'status'=>$a['status'], 'url'=>'scrutiny.php?app_id='.$a['id']];
     }
     return $out;
 }
@@ -122,4 +122,67 @@ function contractor_public_stats(array $contractors, array $apps, ?string $today
         'apps_year'  => $base['apps_year'] + $appsYear,
         'avg_days'   => 7,
     ];
+}
+
+/* ===========================================================================
+ * Phase 2 — scoring engine, application breakdown & forward-guard.
+ * =========================================================================== */
+
+/**
+ * Objective four-part evaluation score for a contractor.
+ * $c: a contractors row (experience_yrs, completed_projects, turnover, class, status, risk_score).
+ * $docResults: rows from contractor_doc_verify(); each 'Issue' lowers compliance.
+ * Returns experience|financial|compliance|overall (0..100) plus band A/B/C.
+ */
+function contractor_score(array $c, array $docResults = []): array {
+    $years    = (int)($c['experience_yrs'] ?? 0);
+    $projects = (int)($c['completed_projects'] ?? 0);
+    $turnover = (float)($c['turnover'] ?? 0);
+    $risk     = (int)($c['risk_score'] ?? 0);
+
+    $experience = (int)round(min($years, 10) / 10 * 50 + min($projects, 10) / 10 * 50);
+
+    $thresholds = ['I'=>50000000.0, 'II'=>30000000.0, 'III'=>15000000.0, 'IV'=>5000000.0];
+    $threshold  = $thresholds[$c['class'] ?? 'IV'] ?? 5000000.0;
+    $ratio      = $threshold > 0 ? $turnover / $threshold : 0.0;
+    $financial  = max(0, min(100, (int)round(40 + min($ratio, 1.2) * 50)));
+
+    if (($c['status'] ?? '') === 'Blacklisted') {
+        $compliance = 0;
+    } else {
+        $issues = 0;
+        foreach ($docResults as $d) if (($d['status'] ?? '') === 'Issue') $issues++;
+        $compliance = max(0, min(100, 100 - $risk - 15 * $issues));
+    }
+
+    $overall = (int)round($experience * 0.35 + $financial * 0.30 + $compliance * 0.35);
+    $band    = $overall >= 80 ? 'A' : ($overall >= 60 ? 'B' : 'C');
+
+    return ['experience'=>$experience, 'financial'=>$financial,
+            'compliance'=>$compliance, 'overall'=>$overall, 'band'=>$band];
+}
+
+/**
+ * Count back-office applications by review bucket for the Screen-6 strip.
+ * Terminal and query states take priority over the workflow stage.
+ */
+function contractor_app_breakdown(array $apps): array {
+    $b = ['new'=>0,'verifying'=>0,'approval_pending'=>0,'query'=>0,'approved'=>0,'rejected'=>0];
+    foreach ($apps as $a) {
+        $st = $a['status'] ?? ''; $stage = $a['stage'] ?? '';
+        if      ($st === 'Rejected')     $b['rejected']++;
+        elseif  ($st === 'Approved')     $b['approved']++;
+        elseif  ($st === 'Query Raised') $b['query']++;
+        elseif  ($stage === 'EIC')       $b['approval_pending']++;
+        elseif  ($stage === 'ASO')       $b['new']++;
+        else                             $b['verifying']++;
+    }
+    return $b;
+}
+
+/** Can this application be forwarded to the next stage right now? */
+function contractor_can_forward(array $app, int $openQueries): bool {
+    if ($openQueries > 0) return false;
+    if (in_array($app['status'] ?? '', ['Approved','Rejected','Query Raised'], true)) return false;
+    return contractor_next_stage($app['stage'] ?? '') !== null;
 }
