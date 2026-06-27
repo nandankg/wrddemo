@@ -4,6 +4,8 @@ require_once __DIR__ . '/../../includes/i18n.php';
 require_once __DIR__ . '/../../includes/functions.php';
 require_once __DIR__ . '/lib.php';
 contractor_require_login();
+set_app_context('contractor');
+app_require_access('revenue');
 $pdo = db();
 $apps = $pdo->query("SELECT type,fee,fee_paid,applied_on,contractor_id FROM contractor_apps")->fetchAll();
 $contractors = $pdo->query("SELECT id,district FROM contractors")->fetchAll();
@@ -12,14 +14,12 @@ $k   = contractor_revenue_kpis($apps);
 $mc  = contractor_monthly_collection($apps);
 $roll = contractor_district_rollup($contractors, $apps);
 // Top districts by revenue for the bar chart.
-arsort($roll);
+uasort($roll, fn($a, $b) => $b['revenue'] <=> $a['revenue']);
 $topDist = array_slice($roll, 0, 10, true);
 
 $cr = fn(float $v): string => '₹' . number_format($v / 10000000, 2) . ' Cr';
 
-set_app_context('contractor');
-app_require_access('revenue');
-$LAYOUT='app'; $ACTIVE='revenue'; $PAGE_TITLE='Revenue MIS';
+$LAYOUT='app'; $ACTIVE='revenue'; $PAGE_TITLE = is_hi() ? 'राजस्व एमआईएस' : 'Revenue MIS';
 $EXTRA_HEAD = '<script src="' . base_url('assets/vendor/chartjs/chart.umd.js') . '"></script>';
 require __DIR__ . '/../../includes/header.php';
 ?>
@@ -36,7 +36,7 @@ require __DIR__ . '/../../includes/header.php';
       [is_hi()?'चालू वित्त वर्ष':'This FY', $cr($k['fy']), 'text-amber-700'],
     ] as $kpi): ?>
     <div class="card p-5">
-      <div class="text-2xl font-display font-bold <?= $kpi[2] ?>"><?= e($kpi[1]) ?></div>
+      <div class="text-2xl font-display font-bold <?= e($kpi[2]) ?>"><?= e($kpi[1]) ?></div>
       <div class="text-xs text-slate-500 mt-1"><?= e($kpi[0]) ?></div>
     </div>
   <?php endforeach; ?>
@@ -73,7 +73,7 @@ window.RV_DLBL   = <?= json_encode(array_keys($topDist), JSON_UNESCAPED_UNICODE)
   });
   new Chart(document.getElementById('splitChart'), {
     type:'doughnut',
-    data:{ labels:['New','Renewal'], datasets:[{ data:window.RV_SPLIT, backgroundColor:[acc,'#0ea5e9'] }] }
+    data:{ labels:<?= json_encode(is_hi() ? ['नया','नवीनीकरण'] : ['New','Renewal']) ?>, datasets:[{ data:window.RV_SPLIT, backgroundColor:[acc,'#0ea5e9'] }] }
   });
   new Chart(document.getElementById('distChart'), {
     type:'bar',
