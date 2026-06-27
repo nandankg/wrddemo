@@ -49,16 +49,16 @@ require __DIR__ . '/../../includes/header.php';
 <!-- Filters -->
 <form method="get" class="card p-4 mb-6 flex flex-wrap items-end gap-3">
   <?php
-    $sel = function(string $name, array $opts, string $cur, string $anyLabel) {
-      echo '<div><label class="block text-xs text-slate-500 mb-1">'.e($name).'</label><select name="'.e(strtolower($name)).'" class="border border-slate-300 rounded-xl px-3 py-2 text-sm">';
+    $sel = function(string $label, string $param, array $opts, string $cur, string $anyLabel) {
+      echo '<div><label class="block text-xs text-slate-500 mb-1">'.e($label).'</label><select name="'.e($param).'" class="border border-slate-300 rounded-xl px-3 py-2 text-sm">';
       echo '<option value="">'.e($anyLabel).'</option>';
       foreach ($opts as $o) echo '<option value="'.e($o).'"'.($o===$cur?' selected':'').'>'.e($o).'</option>';
       echo '</select></div>';
     };
-    $sel(is_hi()?'District':'District', $districts, $f['district'], is_hi()?'सभी जिले':'All districts');
-    $sel(is_hi()?'Class':'Class', ['I','II','III','IV'], $f['class'], is_hi()?'सभी':'All');
-    $sel('Category', $categories, $f['category'], is_hi()?'सभी श्रेणियाँ':'All categories');
-    $sel('Status', $statuses, $f['status'], is_hi()?'सभी':'All');
+    $sel(is_hi()?'जिला':'District',        'district', $districts,            $f['district'], is_hi()?'सभी जिले':'All districts');
+    $sel(is_hi()?'श्रेणी':'Class',          'class',    ['I','II','III','IV'], $f['class'],    is_hi()?'सभी':'All');
+    $sel(is_hi()?'कार्य श्रेणी':'Category', 'category', $categories,           $f['category'], is_hi()?'सभी श्रेणियाँ':'All categories');
+    $sel(is_hi()?'स्थिति':'Status',        'status',   $statuses,             $f['status'],   is_hi()?'सभी':'All');
   ?>
   <button class="btn-acc font-semibold px-4 py-2 rounded-xl text-sm"><?= is_hi()?'फ़िल्टर':'Filter' ?></button>
   <a href="<?= base_url('app/contractor/registry.php') ?>" class="text-sm text-slate-500 px-2 py-2"><?= is_hi()?'रीसेट':'Reset' ?></a>
@@ -79,7 +79,7 @@ require __DIR__ . '/../../includes/header.php';
           <td class="px-4 py-3 text-xs font-mono text-slate-500 hidden md:table-cell"><?= e($c['gst']) ?></td>
           <td class="px-4 py-3"><span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full <?= $rc ?>"><?= $rb ?> · <?= (int)$c['risk_score'] ?></span></td>
           <td class="px-4 py-3"><?= badge(contractor_effective_status($c, $today)) ?></td>
-          <td class="px-4 py-3 text-right"><?php if($c['status']==='Active'): ?><a href="<?= base_url('app/contractor/certificate.php') ?>?id=<?= $c['id'] ?>" target="_blank" class="text-sm font-semibold" style="color:<?= e($APP['accent']) ?>">Cert →</a><?php endif; ?></td>
+          <td class="px-4 py-3 text-right"><?php if(contractor_effective_status($c, $today)==='Active'): ?><a href="<?= base_url('app/contractor/certificate.php') ?>?id=<?= $c['id'] ?>" target="_blank" class="text-sm font-semibold" style="color:<?= e($APP['accent']) ?>">Cert →</a><?php endif; ?></td>
         </tr>
       <?php endforeach; ?>
     </tbody>
