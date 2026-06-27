@@ -13,7 +13,8 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
   if ($app) {
     $stage=$app['stage']; $rem=trim($_POST['remarks']??'');
     $permit = [
-      'forward' => contractor_next_stage($stage)!==null && $role===$stage && !in_array($app['status'],['Approved','Rejected'],true),
+      'forward' => contractor_next_stage($stage)!==null && $role===$stage && !in_array($app['status'],['Approved','Rejected','Query Raised'],true)
+                   && (int)$pdo->query("SELECT COUNT(*) FROM contractor_queries WHERE app_id=$aid AND status<>'Resolved'")->fetchColumn()===0,
       'approve' => $stage==='EIC' && $role==='EIC' && $app['status']!=='Approved',
       'reject'  => in_array($role,['ASO','AE','EE','EIC'],true) && $role===$stage && !in_array($app['status'],['Approved','Rejected'],true),
     ][$act] ?? false;
@@ -49,6 +50,8 @@ if ($isContractor) {
   $st->execute([$u['username']]); $apps=$st->fetchAll();
 } else {
   $apps=$pdo->query("SELECT a.*,c.name cname FROM contractor_apps a LEFT JOIN contractors c ON c.id=a.contractor_id ORDER BY a.id DESC")->fetchAll();
+  $openByApp=[];
+  foreach ($pdo->query("SELECT app_id, COUNT(*) n FROM contractor_queries WHERE status<>'Resolved' GROUP BY app_id") as $r) $openByApp[(int)$r['app_id']]=(int)$r['n'];
 }
 ?>
 <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
@@ -84,7 +87,11 @@ if ($isContractor) {
           <?php if($a['stage']==='EIC'): ?>
             <button name="action" value="approve" class="bg-emerald-600 text-white text-sm font-semibold px-3 py-1.5 rounded-lg">✓ <?= is_hi()?'स्वीकृत + प्रमाणपत्र':'Approve + Issue' ?></button>
           <?php else: ?>
-            <button name="action" value="forward" class="btn-acc text-sm font-semibold px-3 py-1.5 rounded-lg"><?= is_hi()?'अग्रेषित':'Forward' ?> →</button>
+            <?php if (contractor_can_forward($a, $openByApp[$a['id']] ?? 0)): ?>
+              <button name="action" value="forward" class="btn-acc text-sm font-semibold px-3 py-1.5 rounded-lg"><?= is_hi()?'अग्रेषित':'Forward' ?> →</button>
+            <?php else: ?>
+              <span class="text-xs font-semibold text-amber-700 bg-amber-50 rounded-full px-3 py-1.5"><?= is_hi()?'प्रश्न लंबित — अग्रेषण रोका':'Query pending — forwarding held' ?></span>
+            <?php endif; ?>
           <?php endif; ?>
           <button name="action" value="reject" class="bg-rose-100 text-rose-700 text-sm font-semibold px-3 py-1.5 rounded-lg">✕</button>
         </form>
