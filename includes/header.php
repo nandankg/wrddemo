@@ -81,10 +81,9 @@ tailwind.config = {
 <header class="bg-white border-b border-slate-200 sticky top-0 z-40">
   <div class="max-w-7xl mx-auto px-4 h-[72px] flex items-center justify-between gap-4">
     <a href="<?= base_url('index.php') ?>" class="flex items-center gap-3">
-      <!-- water-drop crest -->
-      <span class="grid place-items-center w-11 h-11 rounded-xl water-hero text-white shrink-0" aria-hidden="true">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2.5C12 2.5 5 10 5 14.5a7 7 0 0 0 14 0C19 10 12 2.5 12 2.5Z" fill="#fff" opacity=".95"/><path d="M9 14.5a3 3 0 0 0 3 3" stroke="#0E7C86" stroke-width="1.6" stroke-linecap="round"/></svg>
-      </span>
+      <!-- Government of Jharkhand emblem (also the WRD departmental crest) -->
+      <img src="<?= base_url('assets/img/jlogo.png') ?>" alt="<?= e(t('govt')) ?>"
+           class="w-11 h-11 object-contain shrink-0" width="44" height="44">
       <div class="leading-tight">
         <div class="font-display font-semibold text-ink text-[15px] sm:text-[17px]"><?= t('portal_name') ?></div>
         <div class="text-[11px] sm:text-xs text-slate-500"><?= t('govt') ?> · <?= $APP ? (is_hi()?e($APP['name_hi']):e($APP['name'])) : t('tagline') ?></div>

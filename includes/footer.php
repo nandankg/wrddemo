@@ -8,8 +8,12 @@ if ($LAYOUT === 'app'): ?>
   <footer class="bg-ink text-slate-300 mt-16">
     <div class="max-w-7xl mx-auto px-4 py-12 grid md:grid-cols-4 gap-8">
       <div>
-        <div class="font-display font-semibold text-white text-lg"><?= t('portal_name') ?></div>
-        <p class="text-sm text-slate-400 mt-2"><?= t('govt') ?></p>
+        <div class="flex items-center gap-3">
+          <img src="<?= base_url('assets/img/jlogo.png') ?>" alt="<?= e(t('govt')) ?>"
+               class="w-12 h-12 object-contain bg-white rounded-lg p-1 shrink-0" width="48" height="48">
+          <div class="font-display font-semibold text-white text-lg leading-tight"><?= t('portal_name') ?></div>
+        </div>
+        <p class="text-sm text-slate-400 mt-3"><?= t('govt') ?></p>
         <p class="text-sm text-slate-400 mt-3">Jal Bhawan, Doranda,<br>Ranchi – 834002, Jharkhand</p>
       </div>
       <div>

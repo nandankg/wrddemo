@@ -18,15 +18,18 @@ $actions = [
 ];
 ?>
 <section class="text-white" style="background:radial-gradient(1100px 300px at 80% -10%, rgba(37,99,235,.35), transparent), linear-gradient(180deg,#0a2a44,#0c3350)">
-  <div class="max-w-6xl mx-auto px-4 pt-14 pb-12">
-    <span class="inline-flex items-center gap-2 rounded-full bg-white/10 ring-1 ring-white/20 px-3 py-1 text-xs font-medium">⚒️ <?= is_hi()?'घटक-बी':'Component-B' ?></span>
-    <h1 class="font-display font-semibold text-3xl sm:text-4xl lg:text-5xl leading-[1.1] mt-5 max-w-3xl"><?= is_hi()?'जल संसाधन विभाग':'Water Resources Department' ?></h1>
-    <p class="text-cyan-100/90 text-lg mt-3 max-w-2xl"><?= is_hi()?'ठेकेदार पंजीकरण एवं सूचीयन पोर्टल':'Contractor Registration & Empanelment Portal' ?></p>
-    <div class="flex flex-wrap gap-2 mt-7">
-      <?php foreach (['GIGW 3.0','WCAG 2.1 AA','Aadhaar e-KYC','DigiLocker','हिंदी / English'] as $b): ?>
-        <span class="text-[11px] bg-white/8 ring-1 ring-white/18 rounded-lg px-2.5 py-1.5 text-cyan-100/90">✓ <?= e($b) ?></span>
-      <?php endforeach; ?>
+  <div class="max-w-6xl mx-auto px-4 pt-14 pb-12 flex flex-col lg:flex-row lg:items-center gap-10">
+    <div class="min-w-0 flex-1">
+      <span class="inline-flex items-center gap-2 rounded-full bg-white/10 ring-1 ring-white/20 px-3 py-1 text-xs font-medium">⚒️ <?= is_hi()?'घटक-बी':'Component-B' ?></span>
+      <h1 class="font-display font-semibold text-3xl sm:text-4xl lg:text-5xl leading-[1.1] mt-5 max-w-3xl"><?= is_hi()?'जल संसाधन विभाग':'Water Resources Department' ?></h1>
+      <p class="text-cyan-100/90 text-lg mt-3 max-w-2xl"><?= is_hi()?'ठेकेदार पंजीकरण एवं सूचीयन पोर्टल':'Contractor Registration & Empanelment Portal' ?></p>
+      <div class="flex flex-wrap gap-2 mt-7">
+        <?php foreach (['GIGW 3.0','WCAG 2.1 AA','Aadhaar e-KYC','DigiLocker','हिंदी / English'] as $b): ?>
+          <span class="text-[11px] bg-white/8 ring-1 ring-white/18 rounded-lg px-2.5 py-1.5 text-cyan-100/90">✓ <?= e($b) ?></span>
+        <?php endforeach; ?>
+      </div>
     </div>
+    <?php render_hero_portraits(); ?>
   </div>
 </section>
 
@@ -56,5 +59,5 @@ $actions = [
     <?php endforeach; ?>
   </div>
 </section>
-<?php render_leaders(); ?>
+<?php render_secretaries(); ?>
 <?php require __DIR__ . '/../includes/footer.php'; ?>
