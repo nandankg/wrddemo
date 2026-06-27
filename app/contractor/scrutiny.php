@@ -105,8 +105,8 @@ $name = $hasFirm ? (is_hi() ? ($app['cname_hi'] ?: $app['cname']) : $app['cname'
             <?php endif; ?>
             <?php if ($q['status']!=='Resolved'): ?>
               <form method="post" class="mt-2">
-                <input type="hidden" name="app_id" value="<?= $app['app_id'] ?>">
-                <input type="hidden" name="query_id" value="<?= $q['id'] ?>">
+                <input type="hidden" name="app_id" value="<?= e($app['app_id']) ?>">
+                <input type="hidden" name="query_id" value="<?= e($q['id']) ?>">
                 <button name="action" value="resolve_query" class="text-xs font-semibold text-emerald-700">✓ <?= is_hi()?'समाधान करें':'Mark resolved' ?></button>
               </form>
             <?php endif; ?>
@@ -115,7 +115,7 @@ $name = $hasFirm ? (is_hi() ? ($app['cname_hi'] ?: $app['cname']) : $app['cname'
         <?php if (!$queries): ?><p class="text-sm text-slate-400"><?= is_hi()?'कोई प्रश्न नहीं।':'No queries raised.' ?></p><?php endif; ?>
       </div>
       <form method="post" class="flex flex-wrap gap-2 items-end">
-        <input type="hidden" name="app_id" value="<?= $app['app_id'] ?>">
+        <input type="hidden" name="app_id" value="<?= e($app['app_id']) ?>">
         <input name="query_text" required placeholder="<?= is_hi()?'ठेकेदार से प्रश्न पूछें…':'Ask the contractor for clarification…' ?>" class="flex-1 min-w-[200px] border border-slate-300 rounded-xl px-3 py-2.5 text-sm">
         <button name="action" value="raise_query" class="btn-acc font-semibold px-4 py-2.5 rounded-xl text-sm"><?= is_hi()?'प्रश्न भेजें':'Raise Query' ?></button>
       </form>
@@ -128,7 +128,7 @@ $name = $hasFirm ? (is_hi() ? ($app['cname_hi'] ?: $app['cname']) : $app['cname'
       <h2 class="font-display text-lg font-semibold text-ink mb-4"><?= is_hi()?'मूल्यांकन स्कोर':'Evaluation Score' ?></h2>
       <?php if ($score): ?>
         <div class="text-center mb-5">
-          <div class="text-5xl font-display font-bold" style="color:<?= e($APP['accent']) ?>"><?= $score['overall'] ?></div>
+          <div class="text-5xl font-display font-bold" style="color:<?= e($APP['accent']) ?>"><?= e($score['overall']) ?></div>
           <div class="text-xs text-slate-400 mt-1"><?= is_hi()?'समग्र · बैंड':'Overall · Band' ?> <b><?= e($score['band']) ?></b></div>
         </div>
         <?php foreach ([
@@ -137,7 +137,7 @@ $name = $hasFirm ? (is_hi() ? ($app['cname_hi'] ?: $app['cname']) : $app['cname'
             [is_hi()?'अनुपालन':'Compliance', $score['compliance']],
           ] as $row): ?>
           <div class="mb-3">
-            <div class="flex justify-between text-xs text-slate-500 mb-1"><span><?= e($row[0]) ?></span><span class="font-semibold text-slate-700"><?= $row[1] ?></span></div>
+            <div class="flex justify-between text-xs text-slate-500 mb-1"><span><?= e($row[0]) ?></span><span class="font-semibold text-slate-700"><?= e($row[1]) ?></span></div>
             <div class="h-2 rounded-full bg-slate-100 overflow-hidden"><div class="h-full rounded-full" style="width:<?= (int)$row[1] ?>%;background:<?= e($APP['accent']) ?>"></div></div>
           </div>
         <?php endforeach; ?>

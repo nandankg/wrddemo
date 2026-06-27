@@ -64,7 +64,7 @@ if ($isContractor) {
         <div class="text-xs text-slate-500"><?= e($a['type']) ?> · Class <?= e($a['class']) ?> · Fee <?= inr((float)$a['fee']) ?> <?= $a['fee_paid']?'<span class="text-emerald-600">✓ paid</span>':'<span class="text-rose-600">unpaid</span>' ?></div></div>
         <?= badge($a['status']) ?>
         <?php if(!$isContractor): ?>
-          <a href="<?= base_url('app/contractor/scrutiny.php') ?>?app_id=<?= $a['id'] ?>" class="text-xs font-semibold" style="color:<?= e($APP['accent']) ?>"><?= is_hi()?'जांच खोलें':'Open scrutiny' ?> →</a>
+          <a href="<?= base_url('app/contractor/scrutiny.php') ?>?app_id=<?= e($a['id']) ?>" class="text-xs font-semibold" style="color:<?= e($APP['accent']) ?>"><?= is_hi()?'जांच खोलें':'Open scrutiny' ?> →</a>
         <?php endif; ?>
       </div>
       <!-- stage tracker -->
