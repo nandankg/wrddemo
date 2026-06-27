@@ -176,10 +176,11 @@ function seed_demo(PDO $pdo): void {
 
     // ---- Contractor queries (officer<->contractor round-trip) ----
     $appIds = $pdo->query('SELECT id FROM contractor_apps ORDER BY id')->fetchAll(PDO::FETCH_COLUMN);
-    // App #3 (new applicant at ASO) is held by an open query.
-    $pdo->prepare("UPDATE contractor_apps SET status='Query Raised' WHERE id=?")->execute([$appIds[2]]);
+    // App #1 belongs to the demo contractor login (firm WRD/REG/3/0451), so the
+    // seeded open query is answerable from the contractor portal out of the box.
+    $pdo->prepare("UPDATE contractor_apps SET status='Query Raised' WHERE id=?")->execute([$appIds[0]]);
     $q = $pdo->prepare('INSERT INTO contractor_queries (app_id,raised_by,raised_role,query_text,status,response_text,raised_on,responded_on,resolved_on) VALUES (?,?,?,?,?,?,?,?,?)');
-    $q->execute([$appIds[2], 'Sunita Kumari (ASO, Ranchi)', 'ASO',
+    $q->execute([$appIds[0], 'Sunita Kumari (ASO, Ranchi)', 'ASO',
         'Please upload an updated GST registration certificate — the copy on file has expired.',
         'Open', null, date('Y-m-d', strtotime('-2 days')), null, null]);
     $q->execute([$appIds[1], 'Ravi Sharma (EE, Ranchi)', 'EE',

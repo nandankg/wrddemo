@@ -15,7 +15,8 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
     $permit = [
       'forward' => contractor_next_stage($stage)!==null && $role===$stage && !in_array($app['status'],['Approved','Rejected','Query Raised'],true)
                    && (int)$pdo->query("SELECT COUNT(*) FROM contractor_queries WHERE app_id=$aid AND status<>'Resolved'")->fetchColumn()===0,
-      'approve' => $stage==='EIC' && $role==='EIC' && $app['status']!=='Approved',
+      'approve' => $stage==='EIC' && $role==='EIC' && !in_array($app['status'],['Approved','Rejected','Query Raised'],true)
+                   && (int)$pdo->query("SELECT COUNT(*) FROM contractor_queries WHERE app_id=$aid AND status<>'Resolved'")->fetchColumn()===0,
       'reject'  => in_array($role,['ASO','AE','EE','EIC'],true) && $role===$stage && !in_array($app['status'],['Approved','Rejected'],true),
     ][$act] ?? false;
     if (!$permit) { flash('Action not permitted for your role at this stage.'); header('Location: applications.php'); exit; }
@@ -85,7 +86,11 @@ if ($isContractor) {
           <input name="remarks" placeholder="<?= is_hi()?'टिप्पणी':'Remarks' ?>" class="flex-1 min-w-[160px] border border-slate-200 rounded-lg px-3 py-1.5 text-sm">
           <span class="text-xs text-slate-400"><?= is_hi()?'भूमिका':'You are' ?>: <b style="color:<?= e($APP['accent']) ?>"><?= e($role) ?></b> · <?= is_hi()?'चरण':'stage' ?> <b><?= e($a['stage']) ?></b></span>
           <?php if($a['stage']==='EIC'): ?>
-            <button name="action" value="approve" class="bg-emerald-600 text-white text-sm font-semibold px-3 py-1.5 rounded-lg">✓ <?= is_hi()?'स्वीकृत + प्रमाणपत्र':'Approve + Issue' ?></button>
+            <?php if (($openByApp[$a['id']] ?? 0) === 0): ?>
+              <button name="action" value="approve" class="bg-emerald-600 text-white text-sm font-semibold px-3 py-1.5 rounded-lg">✓ <?= is_hi()?'स्वीकृत + प्रमाणपत्र':'Approve + Issue' ?></button>
+            <?php else: ?>
+              <span class="text-xs font-semibold text-amber-700 bg-amber-50 rounded-full px-3 py-1.5"><?= is_hi()?'प्रश्न लंबित — अनुमोदन रोका':'Query pending — approval held' ?></span>
+            <?php endif; ?>
           <?php else: ?>
             <?php if (contractor_can_forward($a, $openByApp[$a['id']] ?? 0)): ?>
               <button name="action" value="forward" class="btn-acc text-sm font-semibold px-3 py-1.5 rounded-lg"><?= is_hi()?'अग्रेषित':'Forward' ?> →</button>

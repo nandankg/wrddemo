@@ -60,7 +60,9 @@ contractor_can_forward(array $app, int $openQueries): bool
   `min(100, round(min($years,10)/10*50 + min($projects,10)/10*50))`.
 - **Financial (0–100):** turnover vs the applicant's class threshold from the
   `contractor_eligibility` tiers (I=₹5 Cr, II=₹3 Cr, III=₹1.5 Cr, IV=₹0.5 Cr
-  baseline): `clamp(round(turnover / threshold * 80) + 20, 0, 100)`.
+  baseline): `clamp(round(40 + min(turnover / threshold, 1.2) * 50), 0, 100)`
+  (base 40, slope 50, ratio capped at 1.2 — so meeting the class bar exactly
+  scores 90, and 1.2× the bar or above saturates at 100).
 - **Compliance (0–100):** start 100; subtract `risk_score`; subtract a fixed
   penalty per AI doc issue found in `$docResults`; **0 if status is
   `Blacklisted`**.
