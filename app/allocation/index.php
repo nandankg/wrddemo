@@ -180,7 +180,7 @@ $preSourceId=(int)($_GET['source_id'] ?? 0);   // arriving from the GIS picker
           </div>
         </div>
       </div>
-      <div class="rounded-xl p-3 text-xs" style="background:color-mix(in srgb,<?= e($APP['accent']) ?> 12%,#fff);color:<?= e($APP['accent']) ?>">🜄 <?= is_hi()?'आवंटन इंजन स्रोत उपलब्धता एवं मौसमी नीति की जाँच करेगा। SWCS से सत्यापित।':'Allocation engine validates source availability & seasonal policy. Verified via SWCS.' ?></div>
+      <div class="flex items-start gap-1.5 rounded-xl p-3 text-xs" style="background:color-mix(in srgb,<?= e($APP['accent']) ?> 12%,#fff);color:<?= e($APP['accent']) ?>"><?= wrd_icon('droplet','w-4 h-4 shrink-0 mt-px') ?><span><?= is_hi()?'आवंटन इंजन स्रोत उपलब्धता एवं मौसमी नीति की जाँच करेगा। SWCS से सत्यापित।':'Allocation engine validates source availability & seasonal policy. Verified via SWCS.' ?></span></div>
     </div>
     <div class="flex gap-2 mt-5">
       <button type="button" onclick="document.getElementById('newAlloc').close()" class="flex-1 border border-slate-300 rounded-xl py-2.5 font-semibold text-slate-600">Cancel</button>

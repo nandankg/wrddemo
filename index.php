@@ -28,11 +28,12 @@ $apps = wrd_apps();
 <?php render_secretaries(); ?>
 
 <!-- ===== Product cards ===== -->
+<?php $app_icons = ['ppms'=>'chart','contractor'=>'briefcase','allocation'=>'droplet','etariff'=>'receipt','website'=>'building']; ?>
 <section class="max-w-7xl mx-auto px-4 py-12">
   <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
     <?php foreach ($apps as $a): ?>
       <a href="<?= base_url($a['home']) ?>" class="card acc-card p-6 lift group" style="--acc:<?= e($a['accent']) ?>">
-        <div class="w-12 h-12 rounded-xl grid place-items-center text-2xl mb-4 chip-acc"><?= $a['icon'] ?></div>
+        <div class="w-12 h-12 rounded-xl grid place-items-center mb-4 chip-acc"><?= wrd_icon($app_icons[$a['key']] ?? 'document', 'w-6 h-6') ?></div>
         <div class="font-display text-lg font-semibold text-ink group-hover:opacity-90"><?= is_hi()?e($a['name_hi']):e($a['name']) ?></div>
         <p class="text-sm text-slate-500 mt-1.5 leading-relaxed"><?= is_hi()?e($a['tagline_hi']):e($a['tagline']) ?></p>
         <div class="mt-4 text-sm font-semibold" style="color:<?= e($a['accent']) ?>"><?= t('open_demo') ?> →</div>

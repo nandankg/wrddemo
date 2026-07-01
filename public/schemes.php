@@ -14,7 +14,7 @@ $schemes=$pdo->query("SELECT * FROM schemes")->fetchAll();
   <h2 class="font-display text-2xl font-semibold text-ink mb-4"><?= is_hi()?'योजनाएँ':'Schemes' ?></h2>
   <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
     <?php foreach($schemes as $s): ?>
-      <div class="card p-5 lift"><div class="w-10 h-10 rounded-xl bg-brandsoft text-branddeep grid place-items-center text-lg mb-3">🜄</div>
+      <div class="card p-5 lift"><div class="w-10 h-10 rounded-xl bg-brandsoft text-branddeep grid place-items-center mb-3"><?= wrd_icon('droplet','w-5 h-5') ?></div>
         <h3 class="font-semibold text-ink"><?= bi($s['name'],$s['name_hi']) ?></h3>
         <p class="text-xs text-slate-500 mt-1"><?= e($s['type']) ?> · <?= is_hi()?'पात्रता एवं फॉर्म ऑनलाइन':'Eligibility & forms online' ?></p></div>
     <?php endforeach; ?>

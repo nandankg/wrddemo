@@ -47,7 +47,7 @@ $disclosures=['Particulars of organisation, functions & duties','Powers & duties
     <div class="card p-6">
       <h2 class="font-display text-lg font-semibold text-ink mb-3"><?= is_hi()?'स्वतः प्रकटीकरण [धारा 4(1)(b)]':'Suo-Motu Disclosure [Sec 4(1)(b)]' ?></h2>
       <ul class="space-y-2 text-sm">
-        <?php foreach($disclosures as $d): ?><li class="flex items-start gap-2 text-slate-600"><span class="text-brand">📄</span><?= e($d) ?></li><?php endforeach; ?>
+        <?php foreach($disclosures as $d): ?><li class="flex items-start gap-2 text-slate-600"><span class="text-brand shrink-0 mt-0.5"><?= wrd_icon('document','w-4 h-4') ?></span><?= e($d) ?></li><?php endforeach; ?>
       </ul>
     </div>
   </div>
